@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { saveOfflineScan, getOfflineScans, clearOfflineScans } from '../utils/indexedDB';
+import { apiFetch } from '../utils/api';
 import { CheckCircle2, AlertCircle, Wifi, WifiOff, Camera } from 'lucide-react';
 
 export default () => {
@@ -32,15 +33,13 @@ export default () => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime); // A5 note
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
       gain.gain.setValueAtTime(0.1, ctx.currentTime);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.15);
-    } catch (e) {
-      // Audio context error fallback
-    }
+    } catch (e) {}
   };
 
   const syncOfflineQueue = async () => {
@@ -52,7 +51,7 @@ export default () => {
       const token = localStorage.getItem('ems_token');
 
       for (const scan of offlineScans) {
-        await fetch('/api/check-in/scan', {
+        await apiFetch('/api/check-in/scan', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -81,7 +80,6 @@ export default () => {
     setQrCodeInput('');
 
     if (!navigator.onLine) {
-      // Offline mode: save to IndexedDB outbox
       await saveOfflineScan({ qrCodeHash: qrHash });
       playChime();
       setFlashSuccess(true);
@@ -95,7 +93,7 @@ export default () => {
 
     try {
       const token = localStorage.getItem('ems_token');
-      const res = await fetch('/api/check-in/scan', {
+      const res = await apiFetch('/api/check-in/scan', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +112,6 @@ export default () => {
         setError(data.message || 'Check-in validation failed');
       }
     } catch (err) {
-      // Fallback if network drops mid-request
       await saveOfflineScan({ qrCodeHash: qrHash });
       playChime();
       setFlashSuccess(true);

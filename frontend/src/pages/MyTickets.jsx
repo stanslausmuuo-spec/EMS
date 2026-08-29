@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
 import { Calendar, MapPin, Ticket, CheckCircle2 } from 'lucide-react';
 
 export default () => {
@@ -9,17 +10,15 @@ export default () => {
     const fetchTickets = async () => {
       try {
         const token = localStorage.getItem('ems_token');
-        const res = await fetch('/api/tickets/my-tickets', {
+        const res = await apiFetch('/api/tickets/my-tickets', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
         if (data.success) {
           setTickets(data.data);
-          // Cache tickets in localStorage for offline access
           localStorage.setItem('ems_cached_tickets', JSON.stringify(data.data));
         }
       } catch (err) {
-        // Fallback to offline cached tickets
         const cached = localStorage.getItem('ems_cached_tickets');
         if (cached) {
           setTickets(JSON.parse(cached));
@@ -66,7 +65,6 @@ export default () => {
                 </div>
               </div>
 
-              {/* Pure white background container behind QR code for venue laser scanners */}
               <div className="bg-white border border-slate-200 p-4 rounded flex flex-col items-center justify-center">
                 <div className="w-40 h-40 bg-slate-900 text-white flex items-center justify-center font-mono text-xs p-2 text-center rounded">
                   [QR HASH]<br/>{ticket.qrCodeHash.substring(0, 16)}...

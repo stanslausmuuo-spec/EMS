@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { apiFetch } from '../utils/api';
 import { Calendar, MapPin, Users, Search, Ticket } from 'lucide-react';
 
 export default () => {
@@ -15,7 +16,7 @@ export default () => {
       let url = '/api/events?';
       if (search) url += `search=${encodeURIComponent(search)}&`;
       if (category) url += `category=${encodeURIComponent(category)}`;
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       const data = await res.json();
       if (data.success) {
         setEvents(data.data);
@@ -35,7 +36,7 @@ export default () => {
     setMessage('');
     try {
       const token = localStorage.getItem('ems_token');
-      const res = await fetch(`/api/tickets/events/${eventId}/register`, {
+      const res = await apiFetch(`/api/tickets/events/${eventId}/register`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

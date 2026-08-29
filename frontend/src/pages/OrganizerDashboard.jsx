@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { apiFetch } from '../utils/api';
 import { PlusCircle, Users, Ticket, TrendingUp } from 'lucide-react';
 
 export default () => {
@@ -17,7 +18,7 @@ export default () => {
 
   const fetchOrganizerEvents = async () => {
     try {
-      const res = await fetch('/api/events');
+      const res = await apiFetch('/api/events');
       const data = await res.json();
       if (data.success) {
         setEvents(data.data);
@@ -40,7 +41,7 @@ export default () => {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('ems_token');
-        const res = await fetch(`/api/check-in/events/${selectedEventId}/stats`, {
+        const res = await apiFetch(`/api/check-in/events/${selectedEventId}/stats`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -53,7 +54,6 @@ export default () => {
     };
     fetchStats();
 
-    // Socket.io real-time connection
     const socket = io();
     socket.emit('joinEventRoom', selectedEventId);
 
@@ -73,7 +73,7 @@ export default () => {
     setMessage('');
     try {
       const token = localStorage.getItem('ems_token');
-      const res = await fetch('/api/events', {
+      const res = await apiFetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
