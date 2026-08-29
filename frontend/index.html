@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EMS - Enterprise Event Management & Zero-Overbook Ticketing</title>
+    <meta name="description" content="High-performance, frictionless event booking and offline-first check-in platform guaranteeing zero overbooking and flawless gate operations." />
+    <meta name="keywords" content="event management, ticketing, conference, offline scanner, QR tickets, EMS" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#0F172A" />
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 antialiased font-sans">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('ServiceWorker registered: ', reg.scope))
+            .catch(err => console.log('ServiceWorker registration failed: ', err));
+        });
+      }
+    </script>
+  </body>
+</html>
