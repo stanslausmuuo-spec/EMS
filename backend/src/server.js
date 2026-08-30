@@ -24,7 +24,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
   }
 });
 
@@ -32,8 +32,18 @@ app.set('io', io);
 setupSocket(io);
 
 // Security & Middleware
-app.use(helmet());
-app.use(cors());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+app.options('*', cors());
+
 app.use(express.json());
 
 const limiter = rateLimit({
@@ -64,7 +74,6 @@ const PORT = process.env.PORT || 5000;
 
 // Support local execution vs Vercel serverless export
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV) {
-  // If running locally, start server
   if (require.main === module) {
     server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
@@ -72,5 +81,4 @@ if (process.env.NODE_ENV !== 'production' || process.env.VERCEL_ENV) {
   }
 }
 
-// Always export server for Vercel serverless wrapping
 module.exports = server;
