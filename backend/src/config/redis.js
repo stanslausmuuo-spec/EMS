@@ -1,15 +1,14 @@
 const Redis = require('ioredis');
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+const redisUrl = process.env.REDIS_URL || (process.env.REDIS_HOST ? `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT || 6379}` : 'redis://localhost:6379');
+
+const redis = new Redis(redisUrl, {
   maxRetriesPerRequest: null,
+  lazyConnect: true,
 });
 
-redis.on('connect', () => {
-  console.log('Redis connected successfully');
-});
-
-redis.on('error', (err) => {
-  console.error('Redis connection error:', err);
+redis.connect().catch((err) => {
+  console.warn('Redis connection warning (running without persistent Redis/BullMQ):', err.message);
 });
 
 module.exports = redis;
