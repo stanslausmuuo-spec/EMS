@@ -1,10 +1,9 @@
-const CACHE_NAME = 'ems-pwa-v1';
+const CACHE_NAME = 'ems-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/src/main.jsx',
-  '/src/App.jsx',
-  '/src/index.css'
+  '/favicon.svg',
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -32,12 +31,16 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+
+  // NEVER intercept API requests, non-GET requests, or cross-origin backend calls
+  if (url.pathname.includes('/api/') || event.request.method !== 'GET' || url.origin !== location.origin) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached response and fetch fresh in background
         fetch(event.request).then((response) => {
           if (response && response.status === 200) {
             caches.open(CACHE_NAME).then((cache) => {
