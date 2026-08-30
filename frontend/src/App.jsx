@@ -12,7 +12,7 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import './index.css';
 
-export default () => {
+export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
 
   const renderPage = () => {
@@ -51,4 +51,4 @@ export default () => {
       </div>
     </AuthProvider>
   );
-};
+}
