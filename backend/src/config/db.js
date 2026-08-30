@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Event = require('../models/Event');
 
+let cached = global.mongooseConnection;
+if (!cached) {
+  cached = global.mongooseConnection = { conn: null, promise: null };
+}
+
 const seedDatabase = async () => {
   try {
     const userCount = await User.countDocuments();
@@ -67,14 +72,27 @@ const seedDatabase = async () => {
 };
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ems_db');
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-    await seedDatabase();
-  } catch (error) {
-    console.error(`Error connecting to MongoDB: ${error.message}`);
-    process.exit(1);
+  if (cached.conn) {
+    return cached.conn;
   }
+
+  if (!cached.promise) {
+    const opts = { bufferCommands: false };
+    cached.promise = mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/ems_db', opts).then(async (mongooseInstance) => {
+      console.log(`MongoDB Connected: ${mongooseInstance.connection.host}`);
+      await seedDatabase();
+      return mongooseInstance;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
 };
 
 module.exports = connectDB;
