@@ -16,7 +16,7 @@ const validateAndCheckIn = async (req, res) => {
     if (ticket.status === 'Checked-In') {
       return res.status(400).json({ 
         success: false, 
-        message: `Ticket already checked in at ${ticket.checkedInAt.toLocaleString()}`,
+        message: `Ticket already checked in at ${ticket.checkedInAt ? new Date(ticket.checkedInAt).toLocaleTimeString() : 'earlier'}`,
         data: ticket 
       });
     }
@@ -79,7 +79,31 @@ const getEventCheckInStats = async (req, res) => {
   }
 };
 
+const getEventAttendeesCSV = async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ success: false, message: 'Event not found' });
+    }
+
+    const tickets = await Ticket.find({ event: eventId }).populate('attendee', 'name email');
+
+    let csv = 'Ticket ID,Attendee Name,Email,Status,Checked-In At\n';
+    tickets.forEach(t => {
+      csv += `"${t._id}","${t.attendee?.name || 'Unknown'}","${t.attendee?.email || 'Unknown'}","${t.status}","${t.checkedInAt ? new Date(t.checkedInAt).toISOString() : 'N/A'}"\n`;
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=attendees-${eventId}.csv`);
+    res.status(200).send(csv);
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   validateAndCheckIn,
-  getEventCheckInStats
+  getEventCheckInStats,
+  getEventAttendeesCSV
 };
