@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const memoryDb = require('../config/memoryDb');
+const makeChainable = require('../utils/queryHelper');
 
 const ticketSchema = new mongoose.Schema({
   event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true, index: true },
@@ -12,4 +14,31 @@ const ticketSchema = new mongoose.Schema({
   checkedInAt: { type: Date, default: null }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Ticket', ticketSchema);
+const MongooseTicket = mongoose.models.Ticket || mongoose.model('Ticket', ticketSchema);
+
+module.exports = {
+  findOne: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findOne(query));
+    return MongooseTicket.findOne(query, projection, options);
+  },
+  find: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.find(query));
+    return MongooseTicket.find(query, projection, options);
+  },
+  findById: async (id, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findById(id));
+    return MongooseTicket.findById(id, projection, options);
+  },
+  create: async (doc) => {
+    if (global.USE_MEMORY_DB) return memoryDb.tickets.create(doc);
+    return MongooseTicket.create(doc);
+  },
+  countDocuments: async (query) => {
+    if (global.USE_MEMORY_DB) return memoryDb.tickets.countDocuments(query);
+    return MongooseTicket.countDocuments(query);
+  },
+  findOneAndUpdate: async (query, update, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findOneAndUpdate(query, update, options));
+    return MongooseTicket.findOneAndUpdate(query, update, options);
+  }
+};

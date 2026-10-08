@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const memoryDb = require('../config/memoryDb');
+const makeChainable = require('../utils/queryHelper');
 
 const pollSchema = new mongoose.Schema({
   session: { type: mongoose.Schema.Types.ObjectId, ref: 'Session', required: true },
@@ -10,4 +12,31 @@ const pollSchema = new mongoose.Schema({
   active: { type: Boolean, default: true }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Poll', pollSchema);
+const MongoosePoll = mongoose.models.Poll || mongoose.model('Poll', pollSchema);
+
+module.exports = {
+  findOne: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findOne(query));
+    return MongoosePoll.findOne(query, projection, options);
+  },
+  find: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.find(query));
+    return MongoosePoll.find(query, projection, options);
+  },
+  findById: async (id, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findById(id));
+    return MongoosePoll.findById(id, projection, options);
+  },
+  create: async (doc) => {
+    if (global.USE_MEMORY_DB) return memoryDb.polls.create(doc);
+    return MongoosePoll.create(doc);
+  },
+  countDocuments: async (query) => {
+    if (global.USE_MEMORY_DB) return memoryDb.polls.countDocuments(query);
+    return MongoosePoll.countDocuments(query);
+  },
+  findOneAndUpdate: async (query, update, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findOneAndUpdate(query, update, options));
+    return MongoosePoll.findOneAndUpdate(query, update, options);
+  }
+};

@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const memoryDb = require('../config/memoryDb');
+const makeChainable = require('../utils/queryHelper');
 
 const sessionSchema = new mongoose.Schema({
   event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event', required: true },
@@ -13,4 +15,31 @@ const sessionSchema = new mongoose.Schema({
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Session', sessionSchema);
+const MongooseSession = mongoose.models.Session || mongoose.model('Session', sessionSchema);
+
+module.exports = {
+  findOne: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findOne(query));
+    return MongooseSession.findOne(query, projection, options);
+  },
+  find: async (query, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.find(query));
+    return MongooseSession.find(query, projection, options);
+  },
+  findById: async (id, projection, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findById(id));
+    return MongooseSession.findById(id, projection, options);
+  },
+  create: async (doc) => {
+    if (global.USE_MEMORY_DB) return memoryDb.sessions.create(doc);
+    return MongooseSession.create(doc);
+  },
+  countDocuments: async (query) => {
+    if (global.USE_MEMORY_DB) return memoryDb.sessions.countDocuments(query);
+    return MongooseSession.countDocuments(query);
+  },
+  findOneAndUpdate: async (query, update, options) => {
+    if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findOneAndUpdate(query, update, options));
+    return MongooseSession.findOneAndUpdate(query, update, options);
+  }
+};

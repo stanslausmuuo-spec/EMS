@@ -19,6 +19,7 @@ const leadRoutes = require('./routes/leadRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const interactionRoutes = require('./routes/interactionRoutes');
+const webhookRoutes = require('./routes/webhookRoutes');
 
 // Connect to Database
 connectDB();
@@ -50,6 +51,11 @@ app.options('*', cors());
 
 app.use(express.json());
 
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -67,6 +73,7 @@ app.use('/api/leads', leadRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/interactions', interactionRoutes);
+app.use('/api/webhooks', webhookRoutes);
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'Event Management System API is running' });
