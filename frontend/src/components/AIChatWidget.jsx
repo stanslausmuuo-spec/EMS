@@ -5,7 +5,7 @@ import { MessageSquare, X, Send, Bot, User } from 'lucide-react';
 export default () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { sender: 'ai', text: 'Hello! I am your AI Event Concierge. How can I help you today?' }
+    { sender: 'ai', text: 'Hello! How can I help you today?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
