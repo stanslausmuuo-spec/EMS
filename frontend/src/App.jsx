@@ -8,6 +8,9 @@ import Register from './pages/Register';
 import MyTickets from './pages/MyTickets';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import GateScanner from './pages/GateScanner';
+import ExhibitorLeads from './pages/ExhibitorLeads';
+import EventAgenda from './pages/EventAgenda';
+import AIChatWidget from './components/AIChatWidget';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import './index.css';
@@ -29,6 +32,10 @@ export default function App() {
         return <OrganizerDashboard setCurrentPage={setCurrentPage} />;
       case 'scanner':
         return <GateScanner setCurrentPage={setCurrentPage} />;
+      case 'leads':
+        return <ExhibitorLeads setCurrentPage={setCurrentPage} />;
+      case 'agenda':
+        return <EventAgenda setCurrentPage={setCurrentPage} />;
       case 'terms':
         return <Terms setCurrentPage={setCurrentPage} />;
       case 'privacy':
@@ -48,6 +55,7 @@ export default function App() {
           </main>
         </div>
         <Footer setCurrentPage={setCurrentPage} />
+        <AIChatWidget />
       </div>
     </AuthProvider>
   );

@@ -19,6 +19,16 @@ export default ({ setCurrentPage }) => {
             <span>Events</span>
           </button>
 
+          <button onClick={() => setCurrentPage('agenda')} className="flex items-center space-x-1 hover:text-blue-600 font-medium">
+            <span>Agenda</span>
+          </button>
+
+          {user && (user.role === 'Exhibitor' || user.role === 'Organizer' || user.role === 'Admin') && (
+            <button onClick={() => setCurrentPage('leads')} className="flex items-center space-x-1 hover:text-blue-600 font-medium text-purple-600">
+              <span>Lead Capture</span>
+            </button>
+          )}
+
           {user && (
             <button onClick={() => setCurrentPage('tickets')} className="flex items-center space-x-1 hover:text-blue-600 font-medium">
               <Ticket className="w-4 h-4" />

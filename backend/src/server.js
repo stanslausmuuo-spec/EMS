@@ -15,6 +15,9 @@ const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const checkInRoutes = require('./routes/checkInRoutes');
+const leadRoutes = require('./routes/leadRoutes');
+const sessionRoutes = require('./routes/sessionRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 // Connect to Database
 connectDB();
@@ -59,6 +62,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/check-in', checkInRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'Event Management System API is running' });
