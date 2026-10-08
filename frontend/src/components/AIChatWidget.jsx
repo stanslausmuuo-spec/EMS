@@ -43,14 +43,17 @@ export default () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-20 right-6 z-50">
       {!isOpen ? (
         <button 
           onClick={() => setIsOpen(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-full shadow-lg transition-transform hover:scale-105"
+          className="group flex items-center bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-full shadow-xl transition-all duration-300 hover:scale-105"
+          title="AI Event Assistant"
         >
-          <Bot className="w-5 h-5" />
-          <span className="font-semibold text-sm">AI Event Assistant</span>
+          <Bot className="w-6 h-6 flex-shrink-0" />
+          <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 ease-in-out font-semibold text-sm">
+            AI Event Assistant
+          </span>
         </button>
       ) : (
         <div className="w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl flex flex-col h-[450px] overflow-hidden">
