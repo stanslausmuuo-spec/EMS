@@ -79,7 +79,7 @@ export default () => {
             {loading && (
               <div className="flex items-center space-x-2 text-slate-400 text-xs italic">
                 <Bot className="w-4 h-4 animate-spin text-blue-600" />
-                <span>AI is thinking...</span>
+                <span>Thinking...</span>
               </div>
             )}
           </div>
