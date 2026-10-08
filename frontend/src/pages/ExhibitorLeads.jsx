@@ -77,7 +77,7 @@ export default () => {
     }
   };
 
-  const handleUpdateScore = async (leadId, newScore) => {
+  const handleUpdateLead = async (leadId, updateData) => {
     try {
       const token = localStorage.getItem('ems_token');
       const res = await apiFetch(`/api/leads/${leadId}`, {
@@ -86,7 +86,7 @@ export default () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ score: newScore })
+        body: JSON.stringify(updateData)
       });
       const data = await res.json();
       if (data.success) {
@@ -171,7 +171,14 @@ export default () => {
             <option value="Warm">Warm Lead</option>
             <option value="Cold">Cold Lead</option>
           </select>
-          <button type="submit" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-sm transition">
+          <input 
+            type="text" 
+            placeholder="Meeting notes / comments..." 
+            value={scanNotes}
+            onChange={e => setScanNotes(e.target.value)}
+            className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm md:col-span-3"
+          />
+          <button type="submit" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-sm transition md:col-span-1">
             Capture Lead
           </button>
         </form>
@@ -195,6 +202,7 @@ export default () => {
                   <th className="p-4 font-semibold">Email</th>
                   <th className="p-4 font-semibold">Event</th>
                   <th className="p-4 font-semibold">Score</th>
+                  <th className="p-4 font-semibold">Notes</th>
                   <th className="p-4 font-semibold">Scanned At</th>
                   <th className="p-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -213,11 +221,20 @@ export default () => {
                         {lead.score}
                       </span>
                     </td>
+                    <td className="p-4">
+                      <input 
+                        type="text"
+                        defaultValue={lead.notes || ''}
+                        onBlur={e => handleUpdateLead(lead._id, { notes: e.target.value })}
+                        placeholder="Add notes..."
+                        className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-full"
+                      />
+                    </td>
                     <td className="p-4 text-slate-400 text-xs">{new Date(lead.scannedAt).toLocaleString()}</td>
                     <td className="p-4 text-right space-x-2">
                       <select 
                         value={lead.score} 
-                        onChange={e => handleUpdateScore(lead._id, e.target.value)}
+                        onChange={e => handleUpdateLead(lead._id, { score: e.target.value })}
                         className="text-xs border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-transparent"
                       >
                         <option value="Hot">Hot</option>

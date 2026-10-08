@@ -18,6 +18,7 @@ const checkInRoutes = require('./routes/checkInRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const sessionRoutes = require('./routes/sessionRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const interactionRoutes = require('./routes/interactionRoutes');
 
 // Connect to Database
 connectDB();
@@ -65,6 +66,7 @@ app.use('/api/check-in', checkInRoutes);
 app.use('/api/leads', leadRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/interactions', interactionRoutes);
 
 app.get('/', (req, res) => {
   res.json({ success: true, message: 'Event Management System API is running' });
