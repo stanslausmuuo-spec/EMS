@@ -6,9 +6,7 @@ export default ({ setCurrentPage }) => {
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-8 mt-auto text-xs text-slate-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="font-semibold text-slate-700 dark:text-slate-300">EMS Enterprise Core</span>
-          <span className="text-slate-400">| All Systems Operational</span>
+          <span className="text-slate-400">© 2026 EMS Event Platform</span>
         </div>
 
         <div className="flex items-center space-x-6">

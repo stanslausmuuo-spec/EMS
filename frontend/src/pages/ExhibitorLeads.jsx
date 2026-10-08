@@ -26,7 +26,8 @@ export default () => {
         setError(data.message);
       }
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError('Unable to load leads. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,8 @@ export default () => {
         setError(data.message);
       }
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      setError('An error occurred while processing lead capture. Please try again.');
     }
   };
 

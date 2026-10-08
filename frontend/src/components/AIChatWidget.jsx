@@ -25,6 +25,10 @@ export default () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: userMsg })
       });
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Non-JSON response received');
+      }
       const data = await res.json();
       if (data.success) {
         setMessages(prev => [...prev, { sender: 'ai', text: data.data.reply }]);

@@ -6,7 +6,18 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-const ticketQueue = new Queue('ticket-processing', { connection: redis });
+const ticketQueue = new Queue('ticket-processing', { 
+  connection: redis,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000
+    },
+    removeOnComplete: true,
+    removeOnFail: false
+  }
+});
 
 // Configure transporter (using test account if SMTP not provided)
 let transporter = nodemailer.createTransport({
