@@ -42,7 +42,7 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
             {event.category}
           </span>
           {soldOut && (
-            <span className="absolute right-4 top-4 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold text-white">
+            <span className="absolute right-4 top-4 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold text-danger-foreground">
               Sold out
             </span>
           )}

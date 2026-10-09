@@ -11,7 +11,7 @@
     --muted: 243 241 237;
     --muted-foreground: 91 93 107;
     --border: 228 225 218;
-    --input: 228 225 218;
+    --input: 130 138 155;
     --ring: 79 70 229;
     --primary: 79 70 229;
     --primary-foreground: 255 255 255;
@@ -20,9 +20,9 @@
     --success: 16 185 129;
     --success-foreground: 6 78 59;
     --warning: 245 158 11;
-    --warning-foreground: 120 53 15;
-    --danger: 239 68 68;
-    --danger-foreground: 127 29 29;
+    --warning-foreground: 107 46 11;
+    --danger: 220 38 38;
+    --danger-foreground: 255 255 255;
   }
 
   .dark {
@@ -33,7 +33,7 @@
     --muted: 30 38 58;
     --muted-foreground: 148 163 184;
     --border: 39 51 71;
-    --input: 39 51 71;
+    --input: 100 110 130;
     --ring: 129 140 248;
     --primary: 79 70 229;
     --primary-foreground: 255 255 255;
@@ -43,8 +43,8 @@
     --success-foreground: 6 78 59;
     --warning: 251 191 36;
     --warning-foreground: 69 26 3;
-    --danger: 220 38 38;
-    --danger-foreground: 255 255 255;
+    --danger: 248 113 113;
+    --danger-foreground: 69 10 10;
   }
 
   * {

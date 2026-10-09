@@ -162,7 +162,7 @@ export default function EventDetail() {
                 {event.category}
               </span>
               {soldOut ? (
-                <span className="rounded-full bg-danger px-3 py-1 text-xs font-semibold">Sold out</span>
+                <span className="rounded-full bg-danger px-3 py-1 text-xs font-semibold text-danger-foreground">Sold out</span>
               ) : left <= 15 ? (
                 <span className="rounded-full bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground">
                   Only {left} seats left

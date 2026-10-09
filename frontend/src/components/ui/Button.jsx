@@ -17,7 +17,7 @@ const buttonVariants = cva(
         subtle: 'bg-muted text-foreground hover:bg-muted/70',
         accent:
           'bg-accent text-accent-foreground shadow-surface hover:bg-accent/90 hover:shadow-glow-accent',
-        danger: 'bg-danger text-white shadow-surface hover:bg-danger/90',
+        danger: 'bg-danger text-danger-foreground shadow-surface hover:bg-danger/90',
         success: 'bg-success text-white shadow-surface hover:bg-success/90',
         link: 'text-primary underline-offset-4 hover:underline',
       },
