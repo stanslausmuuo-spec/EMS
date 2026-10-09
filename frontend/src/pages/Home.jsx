@@ -210,7 +210,13 @@ export default function Home() {
       </section>
 
       <section id="event-grid" className="container py-12 sm:py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.3 }}
+          className="mb-8 flex items-end justify-between gap-4"
+        >
           <div>
             <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Compass className="h-4 w-4" />
@@ -233,7 +239,7 @@ export default function Home() {
               <X className="h-4 w-4" /> Clear filters
             </Button>
           )}
-        </div>
+        </motion.div>
 
         {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -281,7 +287,8 @@ export default function Home() {
             {featured && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px' }}
                 className="mb-10 grid gap-6 lg:grid-cols-5"
               >
                 <FeaturedSpotlight

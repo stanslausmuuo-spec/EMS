@@ -208,8 +208,18 @@ export default function GateScanner() {
         </div>
 
         {/* Scanner */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-[#111a2c] p-6 sm:p-8">
-          <form onSubmit={handleScan} className="space-y-4">
+        <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-[#111a2c] p-6 sm:p-8">
+          {result?.kind === 'success' && (
+            <motion.div
+              key={`flash-${result.data?._id || result.value || ''}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.65, 0] }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50% 35%,rgb(79_70_229/0.5),transparent_70%)]"
+            />
+          )}
+          <form onSubmit={handleScan} className="space-y-4 relative">
             <label htmlFor="scan-input" className="flex items-center gap-2 text-sm font-medium text-slate-300">
               <ScanLine className="h-4 w-4 text-accent" /> Scan or paste a ticket code
             </label>
@@ -239,7 +249,9 @@ export default function GateScanner() {
                 initial={{ opacity: 0, y: 12, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8 }}
-                className={cn('mt-6 rounded-2xl border p-5', resultStyles[result.kind])}
+                className={cn('relative mt-6 rounded-2xl border p-5', resultStyles[result.kind])}
+                role="status"
+                aria-live="assertive"
               >
                 <div className="flex items-start gap-3">
                   {result.kind === 'success' ? (
@@ -259,10 +271,20 @@ export default function GateScanner() {
                       {result.kind === 'queued' && 'Saved offline'}
                     </p>
                     {result.kind === 'success' && result.data && (
-                      <div className="mt-1 space-y-0.5 text-sm opacity-90">
+                      <>
+                        <motion.span
+                          initial={{ scale: 2.4, rotate: -18, opacity: 0 }}
+                          animate={{ scale: 1, rotate: -12, opacity: 1 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                          className="pointer-events-none absolute right-4 top-4 inline-flex -rotate-12 items-center rounded border-2 border-success/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-success/90"
+                        >
+                          Checked in
+                        </motion.span>
+                        <div className="mt-1 space-y-0.5 text-sm opacity-90">
                         <p><span className="font-semibold">{result.data.attendee?.name}</span> · {result.data.attendee?.email}</p>
                         <p>{result.data.event?.title}</p>
                       </div>
+                      </>
                     )}
                     {result.message && <p className="mt-1 text-sm opacity-90">{result.message}</p>}
                     {result.kind === 'queued' && (

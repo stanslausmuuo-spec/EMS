@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import {
   CalendarDays,
@@ -88,7 +89,7 @@ function TicketPass({ ticket }) {
       </div>
 
       <div className="flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start">
-        <div className="shrink-0 rounded-2xl bg-white p-3 shadow-surface dark:bg-white">
+        <div className="relative shrink-0 rounded-2xl bg-white p-3 shadow-surface dark:bg-white">
           <QRCodeSVG
             value={ticket.qrCodeHash}
             size={148}
@@ -98,6 +99,18 @@ function TicketPass({ ticket }) {
             bgColor="#ffffff"
             aria-label="Ticket QR code"
           />
+          {isCheckedIn && (
+            <motion.span
+              initial={{ scale: 2, rotate: -18, opacity: 0 }}
+              animate={{ scale: 1, rotate: -12, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+              className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-2xl bg-white/40"
+            >
+              <span className="-rotate-12 rounded border-4 border-danger/80 px-2 py-0.5 text-xs font-bold uppercase tracking-[0.25em] text-danger/90">
+                Checked in
+              </span>
+            </motion.span>
+          )}
         </div>
 
         <div className="min-w-0 flex-1 text-center sm:text-left">

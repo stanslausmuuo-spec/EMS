@@ -175,7 +175,6 @@ export function AIChatWidget() {
             className="group relative flex items-center gap-2 rounded-full bg-primary p-3.5 text-white shadow-surface"
             aria-label="Open AI concierge"
           >
-            <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-primary/40 opacity-60" />
             <Bot className="h-6 w-6" />
             <span className="max-w-0 overflow-hidden whitespace-nowrap text-sm font-semibold transition-all duration-300 group-hover:max-w-[10rem]">
               <span className="flex items-center gap-1 pl-0.5 pr-1">

@@ -43,7 +43,15 @@ function StatCard({ label, value, sub, icon: Icon, accent, delay = 0 }) {
           <Icon className="h-4 w-4" />
         </span>
       </div>
-      <div className="mt-3 font-display text-3xl font-semibold tabular-nums">{value}</div>
+      <motion.span
+        key={String(value)}
+        initial={{ opacity: 0.5, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.25 }}
+        className="inline-block"
+      >
+        <div className="mt-3 font-display text-3xl font-semibold tabular-nums">{value}</div>
+      </motion.span>
       {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </motion.div>
   );

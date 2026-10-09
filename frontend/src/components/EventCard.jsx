@@ -24,8 +24,9 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3), ease: [0.22, 1, 0.36, 1] }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-40px' }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.04, 0.2), ease: [0.22, 1, 0.36, 1] }}
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40"
     >
       <Link to={`/events/${event._id}`} className="relative block">
