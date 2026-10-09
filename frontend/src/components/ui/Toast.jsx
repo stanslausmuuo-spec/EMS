@@ -75,7 +75,7 @@ export function ToastProvider({ children }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 32, scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card p-4 pr-10 shadow-float"
+                className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card p-4 pr-10 shadow-overlay"
                 role="status"
               >
                 <span className={cn('absolute inset-y-0 left-0 w-1', v.bar)} />

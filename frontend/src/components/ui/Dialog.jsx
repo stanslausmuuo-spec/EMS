@@ -13,7 +13,7 @@ export function DialogContent({ className, children, ...props }) {
       <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink-950/70 backdrop-blur-sm data-[state=open]:animate-fade-in" />
       <DialogPrimitive.Content
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card p-6 shadow-float data-[state=open]:animate-scale-in',
+          'fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border bg-card p-6 shadow-overlay data-[state=open]:animate-scale-in',
           className,
         )}
         {...props}
@@ -35,7 +35,7 @@ export function DialogHeader({ className, ...props }) {
 export function DialogTitle({ className, ...props }) {
   return (
     <DialogPrimitive.Title
-      className={cn('font-display text-xl font-bold tracking-tight', className)}
+      className={cn('font-display text-xl font-semibold tracking-tight', className)}
       {...props}
     />
   );

@@ -77,7 +77,7 @@ export function CommandPalette({ open, onOpenChange }) {
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-ink-950/70 backdrop-blur-sm data-[state=open]:animate-fade-in" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-[15%] z-[60] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-float data-[state=open]:animate-scale-in">
+        <DialogPrimitive.Content className="fixed left-1/2 top-[15%] z-[60] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-card shadow-overlay data-[state=open]:animate-scale-in">
           <DialogPrimitive.Title className="sr-only">Search and navigate</DialogPrimitive.Title>
           <div className="flex items-center gap-3 border-b border-border px-4">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />

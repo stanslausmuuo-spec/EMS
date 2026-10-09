@@ -12,7 +12,7 @@ export function Progress({ value = 0, className, indicatorClassName }) {
       aria-valuemax={100}
     >
       <div
-        className={cn('h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500', indicatorClassName)}
+        className={cn('h-full rounded-full bg-primary transition-all duration-500', indicatorClassName)}
         style={{ width: `${clamped}%` }}
       />
     </div>

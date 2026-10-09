@@ -4,15 +4,15 @@
 
 @layer base {
   :root {
-    --background: 248 250 252;
-    --foreground: 15 23 42;
+    --background: 250 249 246;
+    --foreground: 24 26 32;
     --card: 255 255 255;
-    --card-foreground: 15 23 42;
-    --muted: 241 245 249;
-    --muted-foreground: 100 116 139;
-    --border: 226 232 240;
-    --input: 226 232 240;
-    --ring: 99 102 241;
+    --card-foreground: 24 26 32;
+    --muted: 243 241 237;
+    --muted-foreground: 91 93 107;
+    --border: 228 225 218;
+    --input: 228 225 218;
+    --ring: 79 70 229;
     --primary: 79 70 229;
     --primary-foreground: 255 255 255;
     --accent: 14 165 233;
@@ -28,23 +28,23 @@
   .dark {
     --background: 8 11 20;
     --foreground: 226 232 240;
-    --card: 15 20 33;
+    --card: 22 28 46;
     --card-foreground: 226 232 240;
-    --muted: 24 31 48;
+    --muted: 30 38 58;
     --muted-foreground: 148 163 184;
-    --border: 30 41 59;
-    --input: 30 41 59;
+    --border: 39 51 71;
+    --input: 39 51 71;
     --ring: 129 140 248;
-    --primary: 99 102 241;
+    --primary: 79 70 229;
     --primary-foreground: 255 255 255;
     --accent: 56 189 248;
     --accent-foreground: 8 47 73;
     --success: 52 211 153;
     --success-foreground: 6 78 59;
     --warning: 251 191 36;
-    --warning-foreground: 120 53 15;
-    --danger: 248 113 113;
     --warning-foreground: 69 26 3;
+    --danger: 220 38 38;
+    --danger-foreground: 255 255 255;
   }
 
   * {
@@ -64,6 +64,12 @@
 
   ::selection {
     background-color: rgb(var(--primary) / 0.25);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 
   :focus-visible {
@@ -92,11 +98,17 @@
 
 @layer components {
   .glass {
-    @apply bg-card/70 backdrop-blur-xl backdrop-saturate-150 border border-border/70;
+    @apply bg-card/60 backdrop-blur-md border border-border/80;
+  }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    .glass {
+      @apply bg-card;
+    }
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-indigo-500 to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-b from-foreground to-foreground/40 bg-clip-text text-transparent;
   }
 
   .surface-grid {
@@ -108,7 +120,7 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-float;
+    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40;
   }
 
   .shimmer {

@@ -10,7 +10,7 @@ export const DropdownMenuSub = DropdownMenuPrimitive.Sub;
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 const contentClasses =
-  'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-card p-1.5 text-card-foreground shadow-float data-[state=open]:animate-scale-in';
+  'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-card p-1.5 text-card-foreground shadow-overlay data-[state=open]:animate-scale-in';
 
 export function DropdownMenuContent({ className, sideOffset = 8, ...props }) {
   return (
