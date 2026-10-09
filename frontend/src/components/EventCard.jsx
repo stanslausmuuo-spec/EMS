@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, Heart, MapPin, Users } from 'lucide-react';
+import { Briefcase, CalendarDays, Heart, MapPin, Music2, Terminal, Users, Wrench } from 'lucide-react';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 import { Progress } from './ui/Progress';
 import { cn, coverGradient, formatDate, formatTime, isSoldOut, seatsLeft } from '../lib/utils';
 
-const CATEGORY_ICONS = {
-  Tech: '💻',
-  Music: '🎧',
-  Business: '📈',
-  Workshop: '🛠️',
+const CATEGORY_GLYPHS = {
+  Tech: Terminal,
+  Music: Music2,
+  Business: Briefcase,
+  Workshop: Wrench,
 };
 
 export function EventCard({ event, index = 0, saved, onToggleSave }) {
@@ -20,6 +20,7 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
   const capacity = event.capacity || 1;
   const soldPct = Math.min(100, Math.round(((event.soldTickets || 0) / capacity) * 100));
   const urgent = !soldOut && left <= Math.max(5, capacity * 0.1);
+  const CategoryGlyph = CATEGORY_GLYPHS[event.category] || CalendarDays;
 
   return (
     <motion.article
@@ -31,27 +32,33 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
     >
       <Link to={`/events/${event._id}`} className="relative block">
         <div className={cn('relative h-40 overflow-hidden bg-gradient-to-br', coverGradient(event.title))}>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+          <CategoryGlyph
+            strokeWidth={1}
+            className="absolute -bottom-6 -right-4 h-28 w-28 text-white/[0.08] transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/15 to-transparent" />
           <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-ink-950/70 px-2.5 py-1 text-xs font-semibold text-white">
-            <span aria-hidden>{CATEGORY_ICONS[event.category] || '🎫'}</span>
+            <CategoryGlyph className="h-3.5 w-3.5" />
             {event.category}
           </span>
           {soldOut && (
-            <span className="absolute right-4 top-4 rounded-full bg-danger px-2.5 py-1 text-xs font-bold text-white">
+            <span className="absolute right-4 top-4 rounded-full bg-danger px-2.5 py-1 text-xs font-semibold text-white">
               Sold out
             </span>
           )}
           {urgent && (
-            <span className="absolute right-4 top-4 rounded-full bg-warning px-2.5 py-1 text-xs font-bold text-warning-foreground">
+            <span className="absolute right-4 top-4 rounded-full bg-warning px-2.5 py-1 text-xs font-semibold text-warning-foreground">
               Only {left} left
             </span>
           )}
-          <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-xs font-medium text-white/90">
-            <span className="flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5" />
-              {formatDate(event.date, { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
-            <span>{formatTime(event.date)}</span>
+          <div className="absolute inset-x-4 bottom-3">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/75">
+              <CalendarDays className="h-3 w-3" />
+              {formatDate(event.date, { weekday: 'short', month: 'short', day: 'numeric' })} · {formatTime(event.date)}
+            </p>
+            <p className="mt-0.5 line-clamp-1 font-display text-lg font-semibold text-white">
+              {event.title}
+            </p>
           </div>
         </div>
       </Link>

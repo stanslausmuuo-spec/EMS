@@ -26,12 +26,12 @@ export function formatDateTime(date) {
 }
 
 const COVER_GRADIENTS = [
-  'from-indigo-500 via-violet-500 to-fuchsia-500',
-  'from-sky-500 via-cyan-500 to-teal-400',
-  'from-rose-500 via-orange-500 to-amber-400',
-  'from-emerald-500 via-teal-500 to-cyan-500',
-  'from-violet-600 via-purple-500 to-indigo-400',
-  'from-blue-600 via-indigo-500 to-sky-400',
+  'from-[#161e38] to-[#0d1226]',
+  'from-[#211539] to-[#120a22]',
+  'from-[#0f2630] to-[#0a161c]',
+  'from-[#2b1a12] to-[#160c08]',
+  'from-[#1c2830] to-[#0d141a]',
+  'from-[#251b2e] to-[#110d18]',
 ];
 
 export function coverGradient(seed = '') {
