@@ -63,16 +63,16 @@ export function AIChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="flex h-[30rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-float"
+            className="flex h-[30rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-overlay"
           >
-            <div className="relative flex items-center justify-between bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-4 text-white">
-              <div className="absolute inset-0 surface-grid opacity-20" />
+            <div className="relative flex items-center justify-between overflow-hidden bg-ink-950 p-4 text-white">
+              <div className="absolute inset-x-0 top-0 h-32 bg-radial-fade" />
               <div className="relative flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
                   <Bot className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold">AI Concierge</p>
+                  <p className="text-sm font-semibold">AI Concierge</p>
                   <p className="flex items-center gap-1 text-xs text-white/80">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> Online
                   </p>
@@ -172,7 +172,7 @@ export function AIChatWidget() {
             onClick={() => setOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="group relative flex items-center gap-2 rounded-full bg-gradient-to-br from-indigo-600 to-fuchsia-600 p-3.5 text-white shadow-float"
+            className="group relative flex items-center gap-2 rounded-full bg-primary p-3.5 text-white shadow-surface"
             aria-label="Open AI concierge"
           >
             <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-primary/40 opacity-60" />

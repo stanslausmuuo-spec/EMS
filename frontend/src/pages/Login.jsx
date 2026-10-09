@@ -56,21 +56,22 @@ export default function Login() {
     <div className="container py-10 lg:py-16">
       <div className="grid items-stretch gap-10 lg:grid-cols-2">
         {/* Brand panel */}
-        <div className="relative hidden overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute inset-0 surface-grid opacity-20" />
+        <div className="relative hidden overflow-hidden rounded-3xl bg-ink-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 bg-radial-fade" />
+          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-ink-950 to-transparent" />
           <div className="relative">
             <Logo className="text-white" />
-            <h2 className="mt-10 font-display text-4xl font-extrabold leading-tight">
+            <h2 className="mt-10 font-display text-4xl font-semibold leading-tight">
               The event platform your attendees will love.
             </h2>
-            <p className="mt-4 max-w-md text-white/80">
+            <p className="mt-4 max-w-md text-white/70">
               Discover, book, and check in — all from one beautifully fast experience.
             </p>
           </div>
           <ul className="relative mt-10 space-y-4">
             {HIGHLIGHTS.map((h) => (
-              <li key={h.text} className="flex items-center gap-3 text-sm text-white/90">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+              <li key={h.text} className="flex items-center gap-3 text-sm text-white/80">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
                   <h.icon className="h-4 w-4" />
                 </span>
                 {h.text}
@@ -81,11 +82,11 @@ export default function Login() {
 
         {/* Form */}
         <div className="mx-auto flex w-full max-w-md flex-col justify-center">
-          <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-surface">
             <div className="lg:hidden">
               <Logo />
             </div>
-            <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight lg:mt-0">
+            <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight lg:mt-0">
               Welcome back
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">

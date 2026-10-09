@@ -26,13 +26,12 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3), ease: [0.22, 1, 0.36, 1] }}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-float"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40"
     >
       <Link to={`/events/${event._id}`} className="relative block">
         <div className={cn('relative h-40 overflow-hidden bg-gradient-to-br', coverGradient(event.title))}>
-          <div className="absolute inset-0 surface-grid opacity-30" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-          <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-md">
+          <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-ink-950/70 px-2.5 py-1 text-xs font-semibold text-white">
             <span aria-hidden>{CATEGORY_ICONS[event.category] || '🎫'}</span>
             {event.category}
           </span>
@@ -59,7 +58,7 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <Link to={`/events/${event._id}`} className="min-w-0">
-            <h3 className="line-clamp-2 font-display text-lg font-bold leading-snug tracking-tight transition-colors group-hover:text-primary">
+            <h3 className="line-clamp-2 font-display text-lg font-semibold leading-snug tracking-tight transition-colors group-hover:text-primary">
               {event.title}
             </h3>
           </Link>
@@ -88,7 +87,7 @@ export function EventCard({ event, index = 0, saved, onToggleSave }) {
             </span>
             <span>{soldPct}% full</span>
           </div>
-          <Progress value={soldPct} indicatorClassName={soldOut ? 'from-danger to-danger' : undefined} />
+          <Progress value={soldPct} indicatorClassName={soldOut ? 'bg-danger' : undefined} />
 
           <Button asChild className="mt-4 w-full" variant={soldOut ? 'secondary' : 'primary'}>
             <Link to={`/events/${event._id}`}>

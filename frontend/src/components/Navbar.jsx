@@ -62,7 +62,7 @@ export function Navbar({ onOpenCommand }) {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between gap-4">
         <Link to="/" className="shrink-0" aria-label="EMS Platform home">
           <Logo />
@@ -76,7 +76,7 @@ export function Navbar({ onOpenCommand }) {
               end={link.end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium tracking-wide transition-colors',
                   isActive
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-muted hover:text-foreground',
@@ -165,7 +165,7 @@ export function Navbar({ onOpenCommand }) {
       <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-ink-950/70 backdrop-blur-sm data-[state=open]:animate-fade-in lg:hidden" />
-          <DialogPrimitive.Content className="fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] border-l border-border bg-background p-5 shadow-float data-[state=open]:animate-fade-in lg:hidden">
+          <DialogPrimitive.Content className="fixed inset-y-0 right-0 z-50 w-80 max-w-[85vw] border-l border-border bg-background p-5 shadow-overlay data-[state=open]:animate-fade-in lg:hidden">
             <DialogPrimitive.Title className="sr-only">Navigation menu</DialogPrimitive.Title>
             <div className="flex items-center justify-between">
               <Logo />
@@ -185,7 +185,7 @@ export function Navbar({ onOpenCommand }) {
                   end={link.end}
                   className={({ isActive }) =>
                     cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium tracking-wide transition-colors',
                       isActive
                         ? 'bg-primary/10 text-primary'
                         : 'text-muted-foreground hover:bg-muted hover:text-foreground',

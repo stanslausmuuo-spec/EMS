@@ -44,9 +44,9 @@ export default function Register() {
   return (
     <div className="container py-10 lg:py-16">
       <div className="mx-auto w-full max-w-md">
-        <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+        <div className="rounded-3xl border border-border bg-card p-8 shadow-surface">
           <Logo />
-          <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight">
+          <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight">
             Create your account
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">

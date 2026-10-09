@@ -115,7 +115,6 @@ export default function Home() {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-radial-fade" />
-        <div className="absolute inset-0 surface-grid opacity-60" />
         <div className="container relative py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <motion.span
@@ -131,7 +130,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="mt-5 font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl"
+              className="mt-5 font-display text-[clamp(2.5rem,7vw,4.5rem)] font-medium leading-[1.05] tracking-tight">
             >
               Discover experiences <span className="text-gradient">worth showing up for</span>
             </motion.h1>
@@ -149,7 +148,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card/80 p-2 shadow-float backdrop-blur-md sm:flex-row sm:items-center"
+              className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-2 shadow-surface sm:flex-row sm:items-center"
             >
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -217,7 +216,7 @@ export default function Home() {
               <Compass className="h-4 w-4" />
               Browse
             </div>
-            <h2 className="mt-1 font-display text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="mt-1 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold tracking-tight">
               {hasFilters ? 'Matching events' : 'Upcoming events'}
             </h2>
           </div>
@@ -333,11 +332,11 @@ export default function Home() {
 function FeaturedSpotlight({ event, saved, onToggleSave, onView, onRegister, registering }) {
   const soldOut = (event.capacity || 0) - (event.soldTickets || 0) <= 0;
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-card to-accent/10 p-7 shadow-soft lg:col-span-3">
-      <div className="absolute inset-0 surface-grid opacity-40" />
+    <div className="relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-surface lg:col-span-3">
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/10 to-transparent" />
       <div className="relative flex flex-1 flex-col">
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
             <Sparkles className="h-3.5 w-3.5" /> Featured
           </span>
           <button
@@ -350,7 +349,7 @@ function FeaturedSpotlight({ event, saved, onToggleSave, onView, onRegister, reg
             <span className={cn('text-sm', saved && 'hidden')}>Save</span>
           </button>
         </div>
-        <h3 className="mt-6 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
+        <h3 className="mt-6 font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
           {event.title}
         </h3>
         <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">{event.description}</p>

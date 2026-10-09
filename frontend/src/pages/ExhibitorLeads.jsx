@@ -105,7 +105,7 @@ export default function ExhibitorLeads() {
     <div className="container py-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Lead Capture CRM</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Lead Capture CRM</h1>
           <p className="mt-1 text-muted-foreground">Scan, score, and manage your booth leads.</p>
         </div>
         <Button variant="secondary" onClick={exportCSV}>
@@ -119,20 +119,20 @@ export default function ExhibitorLeads() {
           { label: 'Hot leads', value: hot, icon: Target, accent: 'text-danger bg-danger/10' },
           { label: 'Avg. per event', value: events.length ? Math.round(leads.length / events.length) : 0, icon: Radar, accent: 'text-accent bg-accent/10' },
         ].map((s) => (
-          <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+          <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-surface">
             <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.accent}`}>
               <s.icon className="h-5 w-5" />
             </span>
             <div>
               <p className="text-sm text-muted-foreground">{s.label}</p>
-              <p className="font-display text-2xl font-extrabold">{s.value}</p>
+              <p className="font-display text-2xl font-semibold tabular-nums">{s.value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <form onSubmit={capture} className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-soft">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+      <form onSubmit={capture} className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-surface">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           Capture a lead
         </h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -176,7 +176,7 @@ export default function ExhibitorLeads() {
         </div>
       </form>
 
-      <div className="mt-8 rounded-2xl border border-border bg-card shadow-soft">
+      <div className="mt-8 rounded-2xl border border-border bg-card shadow-surface">
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
           <span className="font-semibold">Captured leads ({filtered.length})</span>
           <div className="relative w-full sm:w-72">

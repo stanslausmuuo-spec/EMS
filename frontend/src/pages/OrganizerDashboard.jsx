@@ -35,7 +35,7 @@ function StatCard({ label, value, sub, icon: Icon, accent, delay = 0 }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.35 }}
-      className="rounded-2xl border border-border bg-card p-5 shadow-soft"
+      className="rounded-2xl border border-border bg-card p-5 shadow-surface"
     >
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
@@ -43,7 +43,7 @@ function StatCard({ label, value, sub, icon: Icon, accent, delay = 0 }) {
           <Icon className="h-4 w-4" />
         </span>
       </div>
-      <div className="mt-3 font-display text-3xl font-extrabold">{value}</div>
+      <div className="mt-3 font-display text-3xl font-semibold tabular-nums">{value}</div>
       {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </motion.div>
   );
@@ -171,7 +171,7 @@ export default function OrganizerDashboard() {
     <div className="container py-10">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Organizer Dashboard</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Organizer Dashboard</h1>
           <p className="mt-1 text-muted-foreground">Monitor live attendance and manage your events.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function OrganizerDashboard() {
         </div>
       ) : (
         <>
-          <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-surface sm:flex-row sm:items-end sm:justify-between">
             <Field label="Monitoring event" className="w-full sm:max-w-md">
               <Select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
                 {events.map((ev) => (
@@ -237,7 +237,7 @@ export default function OrganizerDashboard() {
           </div>
 
           {stats && (
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-soft">
+            <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-surface">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold">Gate progress</span>
                 <span className="text-muted-foreground">

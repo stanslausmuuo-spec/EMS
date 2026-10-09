@@ -8,12 +8,12 @@ export default function NotFound() {
   return (
     <div className="container flex min-h-[70vh] flex-col items-center justify-center py-20 text-center">
       <div className="relative">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/20 to-accent/20 blur-3xl" />
-        <span className="bg-gradient-to-br from-primary to-accent bg-clip-text font-display text-[7rem] font-extrabold leading-none text-transparent">
+        <div className="absolute inset-0 -z-10 bg-primary/10 blur-3xl" />
+        <span className="text-gradient font-display text-[7rem] font-medium leading-none">
           404
         </span>
       </div>
-      <h1 className="mt-4 font-display text-2xl font-extrabold tracking-tight">
+      <h1 className="mt-4 font-display text-2xl font-semibold tracking-tight">
         This page took a wrong turn
       </h1>
       <p className="mt-2 max-w-md text-muted-foreground">

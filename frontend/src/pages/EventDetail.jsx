@@ -148,29 +148,28 @@ export default function EventDetail() {
     <div className="pb-28 lg:pb-12">
       {/* Hero */}
       <section className={cn('relative overflow-hidden border-b border-border bg-gradient-to-br', coverGradient(event.title))}>
-        <div className="absolute inset-0 surface-grid opacity-25" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         <div className="container relative py-10 sm:py-16">
           <button
             onClick={() => navigate(-1)}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/25"
+            className="mb-6 inline-flex items-center gap-2 rounded-full bg-ink-950/60 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-ink-950/80"
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </button>
           <div className="max-w-3xl text-white">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-bold backdrop-blur-md">
+              <span className="rounded-full bg-ink-950/60 px-3 py-1 text-xs font-semibold">
                 {event.category}
               </span>
               {soldOut ? (
-                <span className="rounded-full bg-danger px-3 py-1 text-xs font-bold">Sold out</span>
+                <span className="rounded-full bg-danger px-3 py-1 text-xs font-semibold">Sold out</span>
               ) : left <= 15 ? (
-                <span className="rounded-full bg-warning px-3 py-1 text-xs font-bold text-warning-foreground">
+                <span className="rounded-full bg-warning px-3 py-1 text-xs font-semibold text-warning-foreground">
                   Only {left} seats left
                 </span>
               ) : null}
             </div>
-            <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight tracking-tight sm:text-5xl">
+            <h1 className="mt-4 font-display text-[clamp(2.25rem,5vw,3.5rem)] font-semibold leading-tight tracking-tight">
               {event.title}
             </h1>
             <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/90">
@@ -193,13 +192,13 @@ export default function EventDetail() {
         {/* Main */}
         <div className="space-y-10 lg:col-span-2">
           <section>
-            <h2 className="font-display text-xl font-bold tracking-tight">About this event</h2>
+            <h2 className="font-display text-xl font-semibold tracking-tight">About this event</h2>
             <p className="mt-3 whitespace-pre-line text-muted-foreground">{event.description}</p>
           </section>
 
           <section>
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold tracking-tight">Agenda</h2>
+              <h2 className="font-display text-xl font-semibold tracking-tight">Agenda</h2>
               <Link to="/agenda" className="text-sm font-medium text-primary hover:underline">
                 Full agenda
               </Link>
@@ -213,10 +212,10 @@ export default function EventDetail() {
                 {sessions.slice(0, 5).map((s) => (
                   <li
                     key={s._id}
-                    className="flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft"
+                    className="flex gap-4 rounded-2xl border border-border bg-card p-4 shadow-surface"
                   >
                     <div className="flex w-20 shrink-0 flex-col text-sm">
-                      <span className="font-bold text-primary">{formatTime(s.startTime)}</span>
+                      <span className="font-semibold text-primary">{formatTime(s.startTime)}</span>
                       <span className="text-xs text-muted-foreground">{formatTime(s.endTime)}</span>
                     </div>
                     <div className="min-w-0">
@@ -246,9 +245,9 @@ export default function EventDetail() {
 
         {/* Sidebar */}
         <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit">
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-surface">
             <div className="flex items-baseline justify-between">
-              <span className="font-display text-2xl font-extrabold">
+              <span className="font-display text-2xl font-semibold">
                 {soldOut ? 'Sold out' : 'Free'}
               </span>
               <span className="text-sm text-muted-foreground">per attendee</span>
@@ -278,9 +277,9 @@ export default function EventDetail() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-surface">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent text-sm font-bold text-white">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">
                 {organizerName.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -299,7 +298,7 @@ export default function EventDetail() {
       </div>
 
       {/* Sticky mobile CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 p-3 backdrop-blur-xl safe-bottom lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/90 p-3 backdrop-blur-md safe-bottom lg:hidden">
         <div className="container flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{event.title}</p>

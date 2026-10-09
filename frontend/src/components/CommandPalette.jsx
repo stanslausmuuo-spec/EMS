@@ -124,7 +124,7 @@ export function CommandPalette({ open, onOpenChange }) {
                     onClick={() => go(`/events/${event._id}`)}
                     className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors hover:bg-muted"
                   >
-                    <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-white', 'from-primary to-accent')}>
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <CalendarDays className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">

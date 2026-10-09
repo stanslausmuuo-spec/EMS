@@ -80,7 +80,7 @@ export default function EventAgenda() {
     <div className="container py-10">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Event Agenda</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Event Agenda</h1>
           <p className="mt-1 text-muted-foreground">
             Explore sessions, breakout rooms, and build your personal schedule.
           </p>
@@ -138,10 +138,10 @@ export default function EventAgenda() {
             return (
               <li
                 key={s._id}
-                className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft transition hover:border-primary/30 md:flex-row md:items-center"
+                className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-surface transition hover:border-primary/30 md:flex-row md:items-center"
               >
                 <div className="flex w-full shrink-0 flex-col gap-1 border-border md:w-28 md:border-r md:pr-4">
-                  <span className="font-display text-lg font-extrabold text-primary">
+                  <span className="font-display text-lg font-semibold text-primary">
                     {formatTime(s.startTime)}
                   </span>
                   <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -152,7 +152,7 @@ export default function EventAgenda() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="primary">{s.track}</Badge>
                   </div>
-                  <h3 className="mt-2 font-display text-lg font-bold">{s.title}</h3>
+                  <h3 className="mt-2 font-display text-lg font-semibold">{s.title}</h3>
                   {s.description && (
                     <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
                   )}

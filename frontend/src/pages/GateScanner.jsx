@@ -176,7 +176,7 @@ export default function GateScanner() {
       <div className="mx-auto max-w-4xl px-4 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-white">
               Gate Check-in
             </h1>
             <p className="text-sm text-slate-400">Scan fast, validate offline, sync automatically.</p>
@@ -208,7 +208,7 @@ export default function GateScanner() {
         </div>
 
         {/* Scanner */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:p-8">
+        <div className="mt-8 rounded-3xl border border-white/10 bg-[#111a2c] p-6 sm:p-8">
           <form onSubmit={handleScan} className="space-y-4">
             <label htmlFor="scan-input" className="flex items-center gap-2 text-sm font-medium text-slate-300">
               <ScanLine className="h-4 w-4 text-accent" /> Scan or paste a ticket code
@@ -252,7 +252,7 @@ export default function GateScanner() {
                     <AlertCircle className="h-6 w-6 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <p className="font-display text-lg font-bold">
+                    <p className="font-display text-lg font-semibold">
                       {result.kind === 'success' && 'Access granted'}
                       {result.kind === 'duplicate' && 'Already checked in'}
                       {result.kind === 'error' && 'Access denied'}
@@ -276,7 +276,7 @@ export default function GateScanner() {
         </div>
 
         {/* Audit log */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
+        <div className="mt-8 rounded-3xl border border-white/10 bg-[#111a2c] p-6">
           <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
             <History className="h-4 w-4" /> Session audit trail
           </div>

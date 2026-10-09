@@ -40,14 +40,14 @@ export default function Terms() {
           <FileText className="h-5 w-5" />
         </span>
         <div>
-          <h1 className="font-display text-3xl font-extrabold tracking-tight">Terms of Service</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">Terms of Service</h1>
           <p className="text-sm text-muted-foreground">Last updated {new Date().getFullYear()}</p>
         </div>
       </div>
       <div className="mt-8 space-y-8">
         {SECTIONS.map((s) => (
           <section key={s.title}>
-            <h2 className="font-display text-lg font-bold">{s.title}</h2>
+            <h2 className="font-display text-lg font-semibold">{s.title}</h2>
             <p className="mt-2 text-muted-foreground">{s.body}</p>
           </section>
         ))}

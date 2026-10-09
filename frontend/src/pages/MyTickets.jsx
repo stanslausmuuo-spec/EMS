@@ -61,19 +61,19 @@ function TicketPass({ ticket }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-soft">
+    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-surface">
       <div className={cn('relative flex items-center justify-between gap-4 bg-gradient-to-br p-6 text-white', coverGradient(ev.title || ticket._id))}>
-        <div className="absolute inset-0 surface-grid opacity-25" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
         <div className="relative min-w-0">
           <p className="text-xs font-semibold uppercase tracking-widest text-white/80">E-Ticket</p>
-          <h3 className="mt-1 truncate font-display text-xl font-extrabold">{ev.title || 'Event'}</h3>
+          <h3 className="mt-1 truncate font-display text-xl font-semibold">{ev.title || 'Event'}</h3>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
             <CalendarDays className="h-3.5 w-3.5" /> {formatDate(ev.date)} · {formatTime(ev.date)}
           </p>
         </div>
         <Badge
           variant={isCheckedIn ? 'success' : 'default'}
-          className={cn('relative shrink-0 border-white/25 bg-white/15 text-white backdrop-blur', isCheckedIn && 'bg-success text-white')}
+          className={cn('relative shrink-0 border-white/20 bg-ink-950/70 text-white', isCheckedIn && 'bg-success text-white')}
         >
           {isCheckedIn ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Clock className="h-3.5 w-3.5" />}
           {isCheckedIn ? 'Checked-In' : 'Valid'}
@@ -88,7 +88,7 @@ function TicketPass({ ticket }) {
       </div>
 
       <div className="flex flex-col items-center gap-5 p-6 sm:flex-row sm:items-start">
-        <div className="shrink-0 rounded-2xl bg-white p-3 shadow-soft dark:bg-white">
+        <div className="shrink-0 rounded-2xl bg-white p-3 shadow-surface dark:bg-white">
           <QRCodeSVG
             value={ticket.qrCodeHash}
             size={148}
@@ -178,7 +178,7 @@ export default function MyTickets() {
   return (
     <div className="container py-10">
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">My Tickets</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-tight">My Tickets</h1>
         <p className="mt-1 text-muted-foreground">
           Your digital passes — available offline and ready to scan at the gate.
         </p>
