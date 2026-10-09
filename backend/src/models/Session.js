@@ -18,27 +18,27 @@ const sessionSchema = new mongoose.Schema({
 const MongooseSession = mongoose.models.Session || mongoose.model('Session', sessionSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findOne(query));
     return MongooseSession.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.find(query));
     return MongooseSession.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findById(id));
     return MongooseSession.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.sessions.create(doc);
     return MongooseSession.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.sessions.countDocuments(query);
     return MongooseSession.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.sessions.findOneAndUpdate(query, update, options));
     return MongooseSession.findOneAndUpdate(query, update, options);
   }

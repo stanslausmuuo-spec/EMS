@@ -1,100 +1,164 @@
 import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowRight, CalendarCheck, Lock, Mail, ScanLine, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../utils/api';
-import { Sparkles } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../components/ui/Toast';
+import { Button } from '../components/ui/Button';
+import { Input, Field } from '../components/ui/Input';
+import { Logo } from '../components/Logo';
 
-export default ({ setCurrentPage }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const HIGHLIGHTS = [
+  { icon: CalendarCheck, text: 'Book seats and manage your schedule in seconds.' },
+  { icon: ScanLine, text: 'Contactless QR check-in with real-time attendance.' },
+  { icon: Sparkles, text: 'AI concierge to answer everything about the event.' },
+];
+
+const DEMO = [
+  { label: 'Organizer', email: 'organizer@ems.local', variant: 'primary' },
+  { label: 'Attendee', email: 'attendee@ems.local', variant: 'secondary' },
+];
+
+export default function Login() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toast = useToast();
   const { login } = useAuth();
 
-  const handleLogin = async (loginEmail, loginPassword) => {
-    setError('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const from = location.state?.from || '/';
+
+  const submit = async (loginEmail, loginPassword) => {
+    setLoading(true);
     try {
-      const res = await apiFetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
+      const data = await api.post('/api/auth/login', {
+        email: loginEmail,
+        password: loginPassword,
       });
-      const data = await res.json();
       if (data.success) {
         login(data.data);
-        setCurrentPage('home');
+        toast.success('Welcome back', data.data?.name);
+        navigate(from, { replace: true });
       } else {
-        setError(data.message || 'Login failed');
+        toast.error('Sign in failed', data.message);
       }
     } catch (err) {
-      setError('Network error during login');
+      toast.error('Sign in failed', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    handleLogin(email, password);
-  };
-
   return (
-    <div className="max-w-md mx-auto mt-16 p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm">
-      <h2 className="text-2xl font-bold mb-2 text-center">Login to EMS</h2>
-      <p className="text-center text-sm text-slate-500 mb-6">Explore the Event Management System</p>
-
-      {/* Quick Demo Login Box */}
-      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <div className="flex items-center space-x-2 text-blue-700 dark:text-blue-300 font-semibold text-sm mb-2">
-          <Sparkles className="w-4 h-4" />
-          <span>Quick Demo Access (One-Click)</span>
+    <div className="container py-10 lg:py-16">
+      <div className="grid items-stretch gap-10 lg:grid-cols-2">
+        {/* Brand panel */}
+        <div className="relative hidden overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 surface-grid opacity-20" />
+          <div className="relative">
+            <Logo className="text-white" />
+            <h2 className="mt-10 font-display text-4xl font-extrabold leading-tight">
+              The event platform your attendees will love.
+            </h2>
+            <p className="mt-4 max-w-md text-white/80">
+              Discover, book, and check in — all from one beautifully fast experience.
+            </p>
+          </div>
+          <ul className="relative mt-10 space-y-4">
+            {HIGHLIGHTS.map((h) => (
+              <li key={h.text} className="flex items-center gap-3 text-sm text-white/90">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+                  <h.icon className="h-4 w-4" />
+                </span>
+                {h.text}
+              </li>
+            ))}
+          </ul>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button 
-            type="button"
-            onClick={() => handleLogin('organizer@ems.local', 'password123')}
-            className="py-1.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition"
-          >
-            Login as Organizer
-          </button>
-          <button 
-            type="button"
-            onClick={() => handleLogin('attendee@ems.local', 'password123')}
-            className="py-1.5 px-3 bg-slate-800 hover:bg-slate-900 text-white dark:bg-slate-700 rounded text-xs font-medium transition"
-          >
-            Login as Attendee
-          </button>
+
+        {/* Form */}
+        <div className="mx-auto flex w-full max-w-md flex-col justify-center">
+          <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+            <div className="lg:hidden">
+              <Logo />
+            </div>
+            <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight lg:mt-0">
+              Welcome back
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sign in to access your tickets and dashboard.
+            </p>
+
+            <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <Sparkles className="h-4 w-4" /> One-click demo access
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {DEMO.map((d) => (
+                  <Button
+                    key={d.email}
+                    type="button"
+                    variant={d.variant}
+                    size="sm"
+                    disabled={loading}
+                    onClick={() => submit(d.email, 'password123')}
+                  >
+                    {d.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <form
+              className="mt-6 space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submit(email, password);
+              }}
+            >
+              <Field label="Email address" required>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    className="pl-10"
+                    placeholder="you@company.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </Field>
+              <Field label="Password" required>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="password"
+                    className="pl-10"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </Field>
+              <Button type="submit" size="lg" className="w-full" loading={loading}>
+                Sign in <ArrowRight className="h-4 w-4" />
+              </Button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              New to EMS?{' '}
+              <Link to="/register" className="font-semibold text-primary hover:underline">
+                Create an account
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
-
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Email Address</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            placeholder="e.g. organizer@ems.local"
-            required 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            placeholder="••••••••"
-            required 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm"
-          />
-        </div>
-        <button type="submit" className="w-full py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded text-sm hover:opacity-95 transition">
-          Sign In
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm text-slate-500">
-        Don't have an account? <button onClick={() => setCurrentPage('register')} className="text-blue-600 font-medium hover:underline">Register</button>
-      </p>
     </div>
   );
-};
+}

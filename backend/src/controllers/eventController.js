@@ -96,7 +96,7 @@ const deleteEvent = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized to delete this event' });
     }
 
-    await event.deleteOne();
+    await Event.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Event removed successfully' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

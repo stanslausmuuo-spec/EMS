@@ -1,8 +1,47 @@
 const Event = require('../models/Event');
 const Ticket = require('../models/Ticket');
+const User = require('../models/User');
 const redis = require('../config/redis');
 const { ticketQueue } = require('../queues/ticketQueue');
 const crypto = require('crypto');
+
+const isPopulated = (value) => value && typeof value === 'object';
+
+const hydrateTickets = async (tickets) => {
+  const list = Array.isArray(tickets) ? tickets : [tickets];
+  const missingEventIds = [
+    ...new Set(
+      list
+        .filter((t) => t && !isPopulated(t.event))
+        .map((t) => String(t.event))
+        .filter(Boolean),
+    ),
+  ];
+  let eventMap = new Map();
+  if (missingEventIds.length) {
+    const events = await Event.find({ _id: { $in: missingEventIds } });
+    eventMap = new Map(events.map((e) => [e._id.toString(), e]));
+  }
+  const missingAttendeeIds = [
+    ...new Set(
+      list
+        .filter((t) => t && t.attendee && !isPopulated(t.attendee))
+        .map((t) => String(t.attendee))
+        .filter(Boolean),
+    ),
+  ];
+  let attendeeMap = new Map();
+  if (missingAttendeeIds.length) {
+    const users = await User.find({ _id: { $in: missingAttendeeIds } });
+    attendeeMap = new Map(users.map((u) => [u._id.toString(), u]));
+  }
+  list.forEach((t) => {
+    if (!t) return;
+    if (!isPopulated(t.event)) t.event = eventMap.get(String(t.event)) || t.event;
+    if (t.attendee && !isPopulated(t.attendee)) t.attendee = attendeeMap.get(String(t.attendee)) || t.attendee;
+  });
+  return tickets;
+};
 
 const registerForEvent = async (req, res) => {
   const eventId = req.params.eventId;
@@ -10,14 +49,19 @@ const registerForEvent = async (req, res) => {
   const lockKey = `lock:event:${eventId}`;
   const lockClient = redis;
   const lockToken = crypto.randomBytes(16).toString('hex');
+  const redisReady = lockClient.status === 'ready';
 
-  // 1. Acquire Redis Atomic Distributed Lock (NX with 5s expiry, fallback safe)
-  const acquired = await lockClient.set(lockKey, lockToken, 'PX', 5000, 'NX').catch(() => 'OK');
-  if (!acquired) {
-    return res.status(429).json({ 
-      success: false, 
-      message: 'High traffic detected! Please try again in a moment (seat lock contention).' 
-    });
+  // 1. Acquire Redis Atomic Distributed Lock (NX with 5s expiry, fallback safe).
+  //    When Redis is unavailable we skip the distributed lock and rely on the
+  //    atomic $expr capacity guard below.
+  if (redisReady) {
+    const acquired = await lockClient.set(lockKey, lockToken, 'PX', 5000, 'NX').catch(() => 'OK');
+    if (!acquired) {
+      return res.status(429).json({
+        success: false,
+        message: 'High traffic detected! Please try again in a moment (seat lock contention).'
+      });
+    }
   }
 
   try {
@@ -52,19 +96,22 @@ const registerForEvent = async (req, res) => {
       status: 'Valid'
     });
 
-    // 6. Push Asynchronous Job to BullMQ for PDF & Email generation (with try/catch fallback)
-    try {
-      await ticketQueue.add('process-ticket', {
-        ticketId: ticket._id.toString(),
-        attendeeEmail: req.user.email,
-        attendeeName: req.user.name,
-        eventTitle: updatedEvent.title,
-        eventDate: updatedEvent.date,
-        eventLocation: updatedEvent.location,
-        qrCodeHash
-      });
-    } catch (qErr) {
-      console.warn('Queue warning:', qErr.message);
+    // 6. Push Asynchronous Job to BullMQ for PDF & Email generation (with try/catch fallback).
+    //    Skipped when Redis is unavailable to avoid hanging on the offline queue.
+    if (redisReady) {
+      try {
+        await ticketQueue.add('process-ticket', {
+          ticketId: ticket._id.toString(),
+          attendeeEmail: req.user.email,
+          attendeeName: req.user.name,
+          eventTitle: updatedEvent.title,
+          eventDate: updatedEvent.date,
+          eventLocation: updatedEvent.location,
+          qrCodeHash
+        });
+      } catch (qErr) {
+        console.warn('Queue warning:', qErr.message);
+      }
     }
 
     res.status(201).json({
@@ -77,14 +124,16 @@ const registerForEvent = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   } finally {
     // Release Redis Lock safely using Lua script or token match check
-    const script = `
-      if redis.call("get", KEYS[1]) == ARGV[1] then
-        return redis.call("del", KEYS[1])
-      else
-        return 0
-      end
-    `;
-    await lockClient.eval(script, 1, lockKey, lockToken).catch(() => {});
+    if (redisReady) {
+      const script = `
+        if redis.call("get", KEYS[1]) == ARGV[1] then
+          return redis.call("del", KEYS[1])
+        else
+          return 0
+        end
+      `;
+      await lockClient.eval(script, 1, lockKey, lockToken).catch(() => {});
+    }
   }
 };
 
@@ -96,6 +145,8 @@ const getMyTickets = async (req, res) => {
         populate: { path: 'organizer', select: 'name email' }
       })
       .sort({ createdAt: -1 });
+
+    await hydrateTickets(tickets);
 
     res.json({ success: true, count: tickets.length, data: tickets });
   } catch (error) {
@@ -110,7 +161,9 @@ const getTicketById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Ticket not found' });
     }
 
-    if (ticket.attendee._id.toString() !== req.user._id.toString() && req.user.role === 'Attendee') {
+    await hydrateTickets(ticket);
+
+    if (ticket.attendee?._id?.toString() !== req.user._id.toString() && req.user.role === 'Attendee') {
       return res.status(403).json({ success: false, message: 'Not authorized to view this ticket' });
     }
 

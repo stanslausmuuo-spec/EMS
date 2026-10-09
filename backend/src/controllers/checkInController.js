@@ -1,5 +1,12 @@
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
+const User = require('../models/User');
+
+const resolveRef = async (value, Model) => {
+  if (!value) return null;
+  if (typeof value === 'object' && (value.title || value.name || value.email)) return value;
+  return Model.findById(value);
+};
 
 const validateAndCheckIn = async (req, res) => {
   try {
@@ -8,10 +15,12 @@ const validateAndCheckIn = async (req, res) => {
       return res.status(400).json({ success: false, message: 'QR code hash is required' });
     }
 
-    const ticket = await Ticket.findOne({ qrCodeHash }).populate('event attendee', 'title name email');
+    const ticket = await Ticket.findOne({ qrCodeHash });
     if (!ticket) {
       return res.status(404).json({ success: false, message: 'Invalid ticket: Not found in database' });
     }
+    ticket.event = await resolveRef(ticket.event, Event);
+    ticket.attendee = await resolveRef(ticket.attendee, User);
 
     if (ticket.status === 'Checked-In') {
       return res.status(400).json({ 

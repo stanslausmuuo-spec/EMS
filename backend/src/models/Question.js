@@ -13,27 +13,27 @@ const questionSchema = new mongoose.Schema({
 const MongooseQuestion = mongoose.models.Question || mongoose.model('Question', questionSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.questions.findOne(query));
     return MongooseQuestion.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.questions.find(query));
     return MongooseQuestion.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.questions.findById(id));
     return MongooseQuestion.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.questions.create(doc);
     return MongooseQuestion.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.questions.countDocuments(query);
     return MongooseQuestion.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.questions.findOneAndUpdate(query, update, options));
     return MongooseQuestion.findOneAndUpdate(query, update, options);
   }

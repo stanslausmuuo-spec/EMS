@@ -17,27 +17,27 @@ leadSchema.index({ exhibitor: 1, event: 1, attendee: 1 }, { unique: true });
 const MongooseLead = mongoose.models.Lead || mongoose.model('Lead', leadSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.leads.findOne(query));
     return MongooseLead.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.leads.find(query));
     return MongooseLead.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.leads.findById(id));
     return MongooseLead.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.leads.create(doc);
     return MongooseLead.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.leads.countDocuments(query);
     return MongooseLead.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.leads.findOneAndUpdate(query, update, options));
     return MongooseLead.findOneAndUpdate(query, update, options);
   }

@@ -1,246 +1,256 @@
-import React, { useState, useEffect } from 'react';
-import { apiFetch } from '../utils/api';
-import { Users, Search, Download, Star, Tag, Edit2, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Download, Mail, Radar, Search, Target, UserPlus } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../components/ui/Toast';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Input, Select, Textarea, Field } from '../components/ui/Input';
+import { Skeleton } from '../components/ui/Skeleton';
+import { EmptyState } from '../components/ui/EmptyState';
+import { downloadBlob, formatDateTime } from '../lib/utils';
 
-export default () => {
+const SCORES = ['Hot', 'Warm', 'Cold'];
+const scoreVariant = { Hot: 'danger', Warm: 'warning', Cold: 'accent' };
+
+export default function ExhibitorLeads() {
+  const toast = useToast();
+
   const [leads, setLeads] = useState([]);
+  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchEmail, setSearchEmail] = useState('');
-  const [eventIdInput, setEventIdInput] = useState('');
-  const [scanNotes, setScanNotes] = useState('');
-  const [scanScore, setScanScore] = useState('Hot');
-  const [successMsg, setSuccessMsg] = useState('');
-  const [editingLead, setEditingLead] = useState(null);
+  const [query, setQuery] = useState('');
+  const [form, setForm] = useState({ eventId: '', email: '', score: 'Hot', notes: '' });
+  const [saving, setSaving] = useState(false);
 
-  const fetchLeads = async () => {
-    try {
-      const token = localStorage.getItem('ems_token');
-      const res = await apiFetch('/api/leads', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.success) {
-        setLeads(data.data);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Unable to load leads. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
+  const loadLeads = () => {
+    api
+      .get('/api/leads')
+      .then((data) => setLeads(data?.success ? data.data || [] : []))
+      .catch((err) => toast.error('Failed to load leads', err.message))
+      .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    fetchLeads();
+    loadLeads();
+    api
+      .get('/api/events')
+      .then((data) => {
+        if (data?.success && data.data?.length) {
+          setEvents(data.data);
+          setForm((f) => ({ ...f, eventId: f.eventId || data.data[0]._id }));
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleCaptureLead = async (e) => {
+  const capture = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccessMsg('');
-
-    if (!eventIdInput.trim() || !searchEmail.trim()) {
-      setError('Please provide both Event ID and Attendee Email');
-      return;
-    }
-
+    setSaving(true);
     try {
-      const token = localStorage.getItem('ems_token');
-      const res = await apiFetch('/api/leads/capture', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          eventId: eventIdInput.trim(),
-          email: searchEmail.trim(),
-          score: scanScore,
-          notes: scanNotes
-        })
+      const data = await api.post('/api/leads/capture', {
+        eventId: form.eventId,
+        email: form.email,
+        score: form.score,
+        notes: form.notes,
       });
-      const data = await res.json();
       if (data.success) {
-        setSuccessMsg(`Successfully captured lead: ${data.data.attendee.name}`);
-        setSearchEmail('');
-        setScanNotes('');
-        fetchLeads();
+        toast.success('Lead captured', data.data?.attendee?.name || form.email);
+        setForm({ ...form, email: '', notes: '' });
+        loadLeads();
       } else {
-        setError(data.message);
+        toast.error('Capture failed', data.message);
       }
     } catch (err) {
-      console.error(err);
-      setError('An error occurred while processing lead capture. Please try again.');
+      toast.error('Capture failed', err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleUpdateLead = async (leadId, updateData) => {
+  const update = async (id, patch) => {
     try {
-      const token = localStorage.getItem('ems_token');
-      const res = await apiFetch(`/api/leads/${leadId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(updateData)
-      });
-      const data = await res.json();
-      if (data.success) {
-        fetchLeads();
-      }
+      const data = await api.put(`/api/leads/${id}`, patch);
+      if (data.success) loadLeads();
     } catch (err) {
-      console.error(err);
+      toast.error('Update failed', err.message);
     }
   };
 
-  const handleExportCSV = async () => {
+  const exportCSV = async () => {
     try {
-      const token = localStorage.getItem('ems_token');
-      const res = await apiFetch('/api/leads/export', {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch('/api/leads/export', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('ems_token')}` },
       });
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'exhibitor-leads.csv';
-      a.click();
-    } catch (err) {
-      setError('Failed to export CSV');
+      downloadBlob(await res.blob(), 'exhibitor-leads.csv');
+      toast.success('Export ready', 'Your CSV has been downloaded.');
+    } catch {
+      toast.error('Export failed');
     }
   };
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return leads;
+    return leads.filter((l) =>
+      [l.attendee?.name, l.attendee?.email, l.event?.title, l.notes]
+        .filter(Boolean)
+        .some((v) => v.toLowerCase().includes(q)),
+    );
+  }, [leads, query]);
+
+  const hot = leads.filter((l) => l.score === 'Hot').length;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container py-10">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Exhibitor Lead Capture CRM</h1>
-          <p className="text-sm text-slate-500">Scan, score, and manage your event booth leads.</p>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">Lead Capture CRM</h1>
+          <p className="mt-1 text-muted-foreground">Scan, score, and manage your booth leads.</p>
         </div>
-        <button 
-          onClick={handleExportCSV}
-          className="flex items-center space-x-2 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded text-sm hover:opacity-95 transition"
-        >
-          <Download className="w-4 h-4" />
-          <span>Export CSV</span>
-        </button>
+        <Button variant="secondary" onClick={exportCSV}>
+          <Download className="h-4 w-4" /> Export CSV
+        </Button>
       </div>
 
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center space-x-3 mb-6">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm font-semibold">{error}</span>
-        </div>
-      )}
-
-      {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg flex items-center space-x-3 mb-6">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm font-semibold">{successMsg}</span>
-        </div>
-      )}
-
-      {/* Capture Lead Form */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 mb-8 shadow-sm">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">Manual Lead Scanner / Entry</h2>
-        <form onSubmit={handleCaptureLead} className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input 
-            type="text" 
-            placeholder="Event ID..." 
-            value={eventIdInput}
-            onChange={e => setEventIdInput(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm"
-          />
-          <input 
-            type="email" 
-            placeholder="Attendee Email..." 
-            value={searchEmail}
-            onChange={e => setSearchEmail(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm"
-          />
-          <select 
-            value={scanScore}
-            onChange={e => setScanScore(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm"
-          >
-            <option value="Hot">Hot Lead</option>
-            <option value="Warm">Warm Lead</option>
-            <option value="Cold">Cold Lead</option>
-          </select>
-          <input 
-            type="text" 
-            placeholder="Meeting notes / comments..." 
-            value={scanNotes}
-            onChange={e => setScanNotes(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent text-sm md:col-span-3"
-          />
-          <button type="submit" className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded text-sm transition md:col-span-1">
-            Capture Lead
-          </button>
-        </form>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        {[
+          { label: 'Total leads', value: leads.length, icon: UserPlus, accent: 'text-primary bg-primary/10' },
+          { label: 'Hot leads', value: hot, icon: Target, accent: 'text-danger bg-danger/10' },
+          { label: 'Avg. per event', value: events.length ? Math.round(leads.length / events.length) : 0, icon: Radar, accent: 'text-accent bg-accent/10' },
+        ].map((s) => (
+          <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-soft">
+            <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.accent}`}>
+              <s.icon className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm text-muted-foreground">{s.label}</p>
+              <p className="font-display text-2xl font-extrabold">{s.value}</p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Leads Table */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <span className="font-bold text-sm">Captured Leads ({leads.length})</span>
+      <form onSubmit={capture} className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-soft">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+          Capture a lead
+        </h2>
+        <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Field label="Event">
+            <Select value={form.eventId} onChange={(e) => setForm({ ...form, eventId: e.target.value })}>
+              {events.map((ev) => (
+                <option key={ev._id} value={ev._id}>
+                  {ev.title}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Attendee email" required>
+            <Input
+              type="email"
+              required
+              placeholder="attendee@company.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </Field>
+          <Field label="Lead score">
+            <Select value={form.score} onChange={(e) => setForm({ ...form, score: e.target.value })}>
+              {SCORES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Notes">
+            <Input
+              placeholder="Meeting notes…"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+            />
+          </Field>
         </div>
+        <div className="mt-4 flex justify-end">
+          <Button type="submit" loading={saving}>
+            <UserPlus className="h-4 w-4" /> Capture lead
+          </Button>
+        </div>
+      </form>
+
+      <div className="mt-8 rounded-2xl border border-border bg-card shadow-soft">
+        <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+          <span className="font-semibold">Captured leads ({filtered.length})</span>
+          <div className="relative w-full sm:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              className="pl-9"
+              placeholder="Search name, email, notes…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
         {loading ? (
-          <p className="p-6 text-sm text-slate-400">Loading leads...</p>
-        ) : leads.length === 0 ? (
-          <p className="p-6 text-sm text-slate-400">No leads captured yet.</p>
+          <div className="space-y-2 p-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              icon={UserPlus}
+              title={query ? 'No matching leads' : 'No leads yet'}
+              description={query ? 'Try a different search term.' : 'Captured booth leads will appear here.'}
+            />
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 border-b border-slate-200 dark:border-slate-800">
+                <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
                   <th className="p-4 font-semibold">Attendee</th>
-                  <th className="p-4 font-semibold">Email</th>
                   <th className="p-4 font-semibold">Event</th>
                   <th className="p-4 font-semibold">Score</th>
                   <th className="p-4 font-semibold">Notes</th>
-                  <th className="p-4 font-semibold">Scanned At</th>
-                  <th className="p-4 font-semibold text-right">Actions</th>
+                  <th className="p-4 font-semibold">Captured</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {leads.map(lead => (
-                  <tr key={lead._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                    <td className="p-4 font-bold">{lead.attendee?.name || 'Unknown'}</td>
-                    <td className="p-4 text-slate-500">{lead.attendee?.email || 'N/A'}</td>
-                    <td className="p-4 text-slate-500">{lead.event?.title || 'Event'}</td>
+              <tbody className="divide-y divide-border">
+                {filtered.map((lead) => (
+                  <tr key={lead._id} className="transition hover:bg-muted/40">
                     <td className="p-4">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded ${
-                        lead.score === 'Hot' ? 'bg-red-100 text-red-800' :
-                        lead.score === 'Warm' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
-                      }`}>
-                        {lead.score}
-                      </span>
+                      <p className="font-semibold">{lead.attendee?.name || 'Unknown'}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Mail className="h-3 w-3" /> {lead.attendee?.email || '—'}
+                      </p>
+                    </td>
+                    <td className="p-4 text-muted-foreground">{lead.event?.title || '—'}</td>
+                    <td className="p-4">
+                      <Badge variant={scoreVariant[lead.score] || 'default'}>{lead.score}</Badge>
                     </td>
                     <td className="p-4">
-                      <input 
+                      <input
                         type="text"
                         defaultValue={lead.notes || ''}
-                        onBlur={e => handleUpdateLead(lead._id, { notes: e.target.value })}
-                        placeholder="Add notes..."
-                        className="text-xs border border-slate-200 dark:border-slate-700 rounded px-2 py-1 bg-transparent w-full"
+                        onBlur={(e) => {
+                          if (e.target.value !== (lead.notes || '')) update(lead._id, { notes: e.target.value });
+                        }}
+                        placeholder="Add notes…"
+                        className="w-full rounded-lg border border-border bg-transparent px-2 py-1 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
                       />
                     </td>
-                    <td className="p-4 text-slate-400 text-xs">{new Date(lead.scannedAt).toLocaleString()}</td>
-                    <td className="p-4 text-right space-x-2">
-                      <select 
-                        value={lead.score} 
-                        onChange={e => handleUpdateLead(lead._id, { score: e.target.value })}
-                        className="text-xs border border-slate-300 dark:border-slate-700 rounded px-2 py-1 bg-transparent"
+                    <td className="p-4">
+                      <Select
+                        value={lead.score}
+                        onChange={(e) => update(lead._id, { score: e.target.value })}
+                        className="h-8 px-2 py-0 text-xs"
                       >
-                        <option value="Hot">Hot</option>
-                        <option value="Warm">Warm</option>
-                        <option value="Cold">Cold</option>
-                      </select>
+                        {SCORES.map((s) => (
+                          <option key={s}>{s}</option>
+                        ))}
+                      </Select>
+                      <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(lead.scannedAt)}</p>
                     </td>
                   </tr>
                 ))}
@@ -251,4 +261,4 @@ export default () => {
       </div>
     </div>
   );
-};
+}

@@ -3,6 +3,34 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Ticket = require('../models/Ticket');
 
+const isPopulated = (value) => value && typeof value === 'object';
+
+const hydrateLeads = async (leads) => {
+  const list = Array.isArray(leads) ? leads : [leads];
+  const eventIds = [
+    ...new Set(list.filter((l) => l && !isPopulated(l.event)).map((l) => String(l.event)).filter(Boolean)),
+  ];
+  const attendeeIds = [
+    ...new Set(list.filter((l) => l && !isPopulated(l.attendee)).map((l) => String(l.attendee)).filter(Boolean)),
+  ];
+  let eventMap = new Map();
+  let attendeeMap = new Map();
+  if (eventIds.length) {
+    const events = await Event.find({ _id: { $in: eventIds } });
+    eventMap = new Map(events.map((e) => [e._id.toString(), e]));
+  }
+  if (attendeeIds.length) {
+    const users = await User.find({ _id: { $in: attendeeIds } });
+    attendeeMap = new Map(users.map((u) => [u._id.toString(), u]));
+  }
+  list.forEach((l) => {
+    if (!l) return;
+    if (!isPopulated(l.event)) l.event = eventMap.get(String(l.event)) || l.event;
+    if (!isPopulated(l.attendee)) l.attendee = attendeeMap.get(String(l.attendee)) || l.attendee;
+  });
+  return leads;
+};
+
 const captureLead = async (req, res) => {
   try {
     const { eventId, attendeeId, email, qrCodeHash, score, notes, tags } = req.body;
@@ -52,6 +80,8 @@ const captureLead = async (req, res) => {
       { new: true, upsert: true, setDefaultsOnInsert: true }
     ).populate('attendee', 'name email').populate('event', 'title date');
 
+    await hydrateLeads(lead);
+
     res.status(200).json({
       success: true,
       message: 'Lead captured successfully',
@@ -76,6 +106,8 @@ const getExhibitorLeads = async (req, res) => {
       .populate('attendee', 'name email')
       .populate('event', 'title date location')
       .sort({ scannedAt: -1 });
+
+    await hydrateLeads(leads);
 
     res.status(200).json({
       success: true,
@@ -108,6 +140,8 @@ const updateLead = async (req, res) => {
       .populate('attendee', 'name email')
       .populate('event', 'title date');
 
+    await hydrateLeads(updatedLead);
+
     res.status(200).json({
       success: true,
       message: 'Lead updated successfully',
@@ -130,6 +164,8 @@ const exportLeadsCSV = async (req, res) => {
       .populate('attendee', 'name email')
       .populate('event', 'title')
       .sort({ scannedAt: -1 });
+
+    await hydrateLeads(leads);
 
     let csv = 'Attendee Name,Email,Event,Score,Notes,Tags,Scanned At\n';
     leads.forEach(l => {

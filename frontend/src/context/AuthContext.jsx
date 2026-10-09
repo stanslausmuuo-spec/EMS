@@ -1,36 +1,36 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { TOKEN_KEY, USER_KEY, getStoredUser } from '../lib/api';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('ems_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    setUser(getStoredUser());
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
+  const login = useCallback((userData) => {
     setUser(userData);
-    localStorage.setItem('ems_user', JSON.stringify(userData));
-    localStorage.setItem('ems_token', userData.token);
-  };
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    if (userData?.token) localStorage.setItem(TOKEN_KEY, userData.token);
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
-    localStorage.removeItem('ems_user');
-    localStorage.removeItem('ems_token');
-  };
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const value = useMemo(() => ({ user, login, logout, loading }), [user, login, logout, loading]);
 
-export const useAuth = () => useContext(AuthContext);
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
+}

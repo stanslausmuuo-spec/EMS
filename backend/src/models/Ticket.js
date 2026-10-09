@@ -17,27 +17,27 @@ const ticketSchema = new mongoose.Schema({
 const MongooseTicket = mongoose.models.Ticket || mongoose.model('Ticket', ticketSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findOne(query));
     return MongooseTicket.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.find(query));
     return MongooseTicket.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findById(id));
     return MongooseTicket.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.tickets.create(doc);
     return MongooseTicket.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.tickets.countDocuments(query);
     return MongooseTicket.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.tickets.findOneAndUpdate(query, update, options));
     return MongooseTicket.findOneAndUpdate(query, update, options);
   }

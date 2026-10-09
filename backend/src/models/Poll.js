@@ -15,27 +15,27 @@ const pollSchema = new mongoose.Schema({
 const MongoosePoll = mongoose.models.Poll || mongoose.model('Poll', pollSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findOne(query));
     return MongoosePoll.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.find(query));
     return MongoosePoll.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findById(id));
     return MongoosePoll.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.polls.create(doc);
     return MongoosePoll.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.polls.countDocuments(query);
     return MongoosePoll.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.polls.findOneAndUpdate(query, update, options));
     return MongoosePoll.findOneAndUpdate(query, update, options);
   }

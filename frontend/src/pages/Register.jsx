@@ -1,89 +1,139 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Lock, Mail, User as UserIcon, Briefcase, Ticket } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { apiFetch } from '../utils/api';
+import { api } from '../lib/api';
+import { useToast } from '../components/ui/Toast';
+import { Button } from '../components/ui/Button';
+import { Input, Field } from '../components/ui/Input';
+import { Logo } from '../components/Logo';
+import { cn } from '../lib/utils';
 
-export default ({ setCurrentPage }) => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Attendee');
-  const [error, setError] = useState('');
+const ROLES = [
+  { value: 'Attendee', label: 'Attendee', hint: 'Book events & manage tickets', icon: Ticket },
+  { value: 'Organizer', label: 'Organizer', hint: 'Create events & scan guests', icon: Briefcase },
+];
+
+export default function Register() {
+  const navigate = useNavigate();
+  const toast = useToast();
   const { login } = useAuth();
 
-  const handleSubmit = async (e) => {
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Attendee' });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
     e.preventDefault();
-    setError('');
+    setLoading(true);
     try {
-      const res = await apiFetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role })
-      });
-      const data = await res.json();
+      const data = await api.post('/api/auth/register', form);
       if (data.success) {
         login(data.data);
-        setCurrentPage('home');
+        toast.success('Account created', `Welcome, ${data.data?.name || form.name}!`);
+        navigate('/', { replace: true });
       } else {
-        setError(data.message || 'Registration failed');
+        toast.error('Registration failed', data.message);
       }
     } catch (err) {
-      setError('Network error during registration');
+      toast.error('Registration failed', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-center">Create EMS Account</h2>
-      {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded text-sm">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Full Name</label>
-          <input 
-            type="text" 
-            value={name} 
-            onChange={(e) => setName(e.target.value)} 
-            required 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent"
-          />
+    <div className="container py-10 lg:py-16">
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-3xl border border-border bg-card p-8 shadow-soft">
+          <Logo />
+          <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight">
+            Create your account
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Join EMS to discover events and manage your experience.
+          </p>
+
+          <form className="mt-6 space-y-4" onSubmit={submit}>
+            <Field label="Full name" required>
+              <div className="relative">
+                <UserIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-10"
+                  placeholder="Ada Lovelace"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  required
+                />
+              </div>
+            </Field>
+            <Field label="Email address" required>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="email"
+                  className="pl-10"
+                  placeholder="you@company.com"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  required
+                />
+              </div>
+            </Field>
+            <Field label="Password" required hint="Use at least 8 characters.">
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="password"
+                  className="pl-10"
+                  placeholder="••••••••"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  required
+                />
+              </div>
+            </Field>
+
+            <div className="space-y-1.5">
+              <span className="text-sm font-medium text-foreground">I am joining as</span>
+              <div className="grid grid-cols-2 gap-3">
+                {ROLES.map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => setForm({ ...form, role: r.value })}
+                    className={cn(
+                      'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition',
+                      form.role === r.value
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary/40'
+                        : 'border-border bg-card hover:border-primary/40',
+                    )}
+                  >
+                    <r.icon
+                      className={cn(
+                        'h-5 w-5',
+                        form.role === r.value ? 'text-primary' : 'text-muted-foreground',
+                      )}
+                    />
+                    <span className="text-sm font-semibold">{r.label}</span>
+                    <span className="text-xs text-muted-foreground">{r.hint}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Button type="submit" size="lg" className="w-full" loading={loading}>
+              Create account <ArrowRight className="h-4 w-4" />
+            </Button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-primary hover:underline">
+              Sign in
+            </Link>
+          </p>
         </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Email Address</label>
-          <input 
-            type="email" 
-            value={email} 
-            onChange={(e) => setEmail(e.target.value)} 
-            required 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Password</label>
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            required 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Role</label>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)} 
-            className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded bg-transparent"
-          >
-            <option value="Attendee">Attendee</option>
-            <option value="Organizer">Organizer</option>
-          </select>
-        </div>
-        <button type="submit" className="w-full py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded hover:opacity-90">
-          Register
-        </button>
-      </form>
-      <p className="mt-4 text-center text-sm text-slate-500">
-        Already have an account? <button onClick={() => setCurrentPage('login')} className="text-blue-600 font-medium">Login</button>
-      </p>
+      </div>
     </div>
   );
-};
+}

@@ -1,240 +1,319 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  CloudUpload,
+  History,
+  QrCode,
+  ScanLine,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import { saveOfflineScan, getOfflineScans, clearOfflineScans } from '../utils/indexedDB';
-import { apiFetch } from '../utils/api';
-import { CheckCircle2, AlertCircle, Wifi, WifiOff, Camera, History } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../components/ui/Toast';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { cn, timeAgo } from '../lib/utils';
 
-export default () => {
-  const [qrCodeInput, setQrCodeInput] = useState('');
-  const [scanResult, setScanResult] = useState(null);
-  const [recentScans, setRecentScans] = useState([]);
-  const [error, setError] = useState('');
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [syncStatus, setSyncStatus] = useState('');
-  const [flashSuccess, setFlashSuccess] = useState(false);
-
+function useOnline() {
+  const [online, setOnline] = useState(navigator.onLine);
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      syncOfflineQueue();
-    };
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener('online', up);
+    window.addEventListener('offline', down);
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', up);
+      window.removeEventListener('offline', down);
     };
   }, []);
+  return online;
+}
 
-  const playChime = () => {
+export default function GateScanner() {
+  const online = useOnline();
+  const toast = useToast();
+  const inputRef = useRef(null);
+
+  const [code, setCode] = useState('');
+  const [result, setResult] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [queueCount, setQueueCount] = useState(0);
+  const [syncing, setSyncing] = useState(false);
+
+  const playTone = (ok = true) => {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      osc.type = ok ? 'sine' : 'square';
+      osc.frequency.setValueAtTime(ok ? 920 : 220, ctx.currentTime);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (ok ? 0.18 : 0.3));
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start();
-      osc.stop(ctx.currentTime + 0.15);
-    } catch (e) {}
-  };
-
-  const syncOfflineQueue = async () => {
-    try {
-      const offlineScans = await getOfflineScans();
-      if (offlineScans.length === 0) return;
-
-      setSyncStatus(`Syncing ${offlineScans.length} offline scans...`);
-      const token = localStorage.getItem('ems_token');
-
-      for (const scan of offlineScans) {
-        await apiFetch('/api/check-in/scan', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ qrCodeHash: scan.qrCodeHash })
-        });
-      }
-
-      await clearOfflineScans();
-      setSyncStatus('All offline scans synchronized successfully!');
-      setTimeout(() => setSyncStatus(''), 4000);
-    } catch (err) {
-      setSyncStatus('Failed to sync offline scans');
+      osc.stop(ctx.currentTime + 0.3);
+    } catch {
+      /* ignore */
     }
   };
 
-  const addRecentScan = (scanItem) => {
-    setRecentScans(prev => [scanItem, ...prev.slice(0, 4)]);
+  const vibrate = (ok) => {
+    try {
+      navigator.vibrate?.(ok ? 60 : [40, 40, 40]);
+    } catch {
+      /* ignore */
+    }
   };
+
+  const refreshQueue = useCallback(async () => {
+    const scans = await getOfflineScans();
+    setQueueCount(scans.length);
+  }, []);
+
+  useEffect(() => {
+    refreshQueue();
+  }, [refreshQueue]);
+
+  const syncQueue = useCallback(async () => {
+    const scans = await getOfflineScans();
+    if (!scans.length) return;
+    setSyncing(true);
+    try {
+      for (const scan of scans) {
+        await api.post('/api/check-in/scan', { qrCodeHash: scan.qrCodeHash });
+      }
+      await clearOfflineScans();
+      setQueueCount(0);
+      toast.success('Offline scans synced', `${scans.length} scan(s) reconciled.`);
+    } catch {
+      toast.error('Sync failed', 'Will retry when the connection is stable.');
+    } finally {
+      setSyncing(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    if (online && queueCount > 0) syncQueue();
+  }, [online, queueCount, syncQueue]);
+
+  const pushHistory = (entry) => setHistory((prev) => [entry, ...prev].slice(0, 12));
 
   const handleScan = async (e) => {
     e.preventDefault();
-    setError('');
-    setScanResult(null);
-
-    if (!qrCodeInput.trim()) return;
-
-    const qrHash = qrCodeInput.trim();
-    setQrCodeInput('');
+    const value = code.trim();
+    if (!value || scanning) return;
+    setCode('');
+    setScanning(true);
+    setResult(null);
 
     if (!navigator.onLine) {
-      await saveOfflineScan({ qrCodeHash: qrHash });
-      playChime();
-      setFlashSuccess(true);
-      const offlineItem = {
-        name: 'Offline Queued Pass',
-        email: qrHash.substring(0, 12) + '...',
-        event: 'Cached Locally',
-        time: new Date().toLocaleTimeString(),
-        status: 'Queued Offline'
-      };
-      setScanResult({
-        message: 'Offline: Scan saved locally. Will sync when online.',
-        data: { qrCodeHash: qrHash, status: 'Queued Offline' }
-      });
-      addRecentScan(offlineItem);
-      setTimeout(() => setFlashSuccess(false), 800);
+      await saveOfflineScan({ qrCodeHash: value });
+      await refreshQueue();
+      playTone(true);
+      vibrate(true);
+      setResult({ kind: 'queued', value });
+      pushHistory({ code: value, status: 'Queued offline', time: new Date().toISOString() });
+      setScanning(false);
+      inputRef.current?.focus();
       return;
     }
 
     try {
-      const token = localStorage.getItem('ems_token');
-      const res = await apiFetch('/api/check-in/scan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ qrCodeHash: qrHash })
-      });
-      const data = await res.json();
-
+      const data = await api.post('/api/check-in/scan', { qrCodeHash: value });
       if (data.success) {
-        playChime();
-        setFlashSuccess(true);
-        setScanResult(data);
-        addRecentScan({
-          name: data.data?.attendee?.name || 'Attendee',
-          email: data.data?.attendee?.email || '',
-          event: data.data?.event?.title || 'Event',
-          time: new Date().toLocaleTimeString(),
-          status: 'Checked-In'
+        playTone(true);
+        vibrate(true);
+        setResult({ kind: 'success', data: data.data });
+        pushHistory({
+          code: value,
+          name: data.data?.attendee?.name,
+          event: data.data?.event?.title,
+          status: 'Checked-In',
+          time: new Date().toISOString(),
         });
-        setTimeout(() => setFlashSuccess(false), 800);
       } else {
-        setError(data.message || 'Check-in validation failed');
+        const already = /already/i.test(data.message || '');
+        playTone(false);
+        vibrate(false);
+        setResult({ kind: already ? 'duplicate' : 'error', message: data.message, data: data.data });
+        pushHistory({
+          code: value,
+          name: data.data?.attendee?.name,
+          event: data.data?.event?.title,
+          status: already ? 'Duplicate' : 'Denied',
+          time: new Date().toISOString(),
+        });
       }
-    } catch (err) {
-      await saveOfflineScan({ qrCodeHash: qrHash });
-      playChime();
-      setFlashSuccess(true);
-      setScanResult({
-        message: 'Network dropped: Saved to offline queue.',
-        data: { qrCodeHash: qrHash, status: 'Queued Offline' }
-      });
-      addRecentScan({
-        name: 'Network Fallback Pass',
-        email: qrHash.substring(0, 12) + '...',
-        event: 'Offline Queue',
-        time: new Date().toLocaleTimeString(),
-        status: 'Queued Offline'
-      });
-      setTimeout(() => setFlashSuccess(false), 800);
+    } catch {
+      await saveOfflineScan({ qrCodeHash: value });
+      await refreshQueue();
+      playTone(true);
+      vibrate(true);
+      setResult({ kind: 'queued', value });
+      pushHistory({ code: value, status: 'Queued offline', time: new Date().toISOString() });
+    } finally {
+      setScanning(false);
+      inputRef.current?.focus();
     }
   };
 
+  const resultStyles = {
+    success: 'border-success/40 bg-success/10 text-success',
+    duplicate: 'border-warning/40 bg-warning/10 text-warning',
+    error: 'border-danger/40 bg-danger/10 text-danger',
+    queued: 'border-accent/40 bg-accent/10 text-accent',
+  };
+
   return (
-    <div className={`max-w-2xl mx-auto px-4 py-8 transition-colors duration-200 ${flashSuccess ? 'bg-emerald-50 dark:bg-emerald-950/30 rounded-lg' : ''}`}>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Gate Check-in Scanner</h1>
-          <p className="text-sm text-slate-500">Real-time ticket validation with offline fallback.</p>
-        </div>
-        <div className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-semibold rounded border ${isOnline ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-          {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
-          <span>{isOnline ? 'Online (Synced)' : 'Offline Mode'}</span>
-        </div>
-      </div>
-
-      {syncStatus && <div className="mb-4 p-3 bg-blue-50 text-blue-700 rounded text-sm font-medium">{syncStatus}</div>}
-
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 mb-6 shadow-sm">
-        <div className="flex items-center space-x-2 text-slate-500 mb-4">
-          <Camera className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-medium">Laser scanner active / Enter or scan QR code hash</span>
-        </div>
-
-        <form onSubmit={handleScan} className="space-y-4">
-          <input 
-            type="text" 
-            placeholder="Scan or paste ticket QR hash..." 
-            value={qrCodeInput} 
-            onChange={e => setQrCodeInput(e.target.value)}
-            autoFocus
-            className="w-full px-4 py-3 border border-slate-300 dark:border-slate-700 rounded bg-transparent font-mono text-sm"
-          />
-          <button type="submit" className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold rounded text-sm hover:opacity-95 transition">
-            Validate & Check In
-          </button>
-        </form>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center space-x-3 mb-6">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <span className="text-sm font-semibold">{error}</span>
-        </div>
-      )}
-
-      {scanResult && (
-        <div className="p-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg mb-6 shadow-sm">
-          <div className="flex items-center space-x-2 text-emerald-700 dark:text-emerald-300 font-bold mb-2">
-            <CheckCircle2 className="w-5 h-5" />
-            <span>{scanResult.message}</span>
+    <div className="min-h-[calc(100vh-4rem)] bg-ink-950 text-slate-100">
+      <div className="mx-auto max-w-4xl px-4 py-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">
+              Gate Check-in
+            </h1>
+            <p className="text-sm text-slate-400">Scan fast, validate offline, sync automatically.</p>
           </div>
-          {scanResult.data?.attendee && (
-            <div className="text-sm text-slate-700 dark:text-slate-300 space-y-1">
-              <p><strong>Attendee:</strong> {scanResult.data.attendee.name}</p>
-              <p><strong>Email:</strong> {scanResult.data.attendee.email}</p>
-              <p><strong>Event:</strong> {scanResult.data.event?.title}</p>
-              <p><strong>Time:</strong> {new Date(scanResult.data.checkedInAt || Date.now()).toLocaleTimeString()}</p>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold',
+                online
+                  ? 'border-success/40 bg-success/10 text-success'
+                  : 'border-warning/40 bg-warning/10 text-warning',
+              )}
+            >
+              {online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+              {online ? 'Online' : 'Offline mode'}
+            </span>
+            {queueCount > 0 && (
+              <Button
+                size="sm"
+                variant="secondary"
+                loading={syncing}
+                onClick={syncQueue}
+                className="border-white/15 bg-white/5 text-white hover:bg-white/10"
+              >
+                <CloudUpload className="h-3.5 w-3.5" /> Sync {queueCount}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Scanner */}
+        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:p-8">
+          <form onSubmit={handleScan} className="space-y-4">
+            <label htmlFor="scan-input" className="flex items-center gap-2 text-sm font-medium text-slate-300">
+              <ScanLine className="h-4 w-4 text-accent" /> Scan or paste a ticket code
+            </label>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <QrCode className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+                <input
+                  id="scan-input"
+                  ref={inputRef}
+                  autoFocus
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="QR hash…"
+                  className="h-14 w-full rounded-2xl border border-white/10 bg-ink-900/80 pl-11 pr-4 font-mono text-base text-white outline-none transition placeholder:text-slate-500 focus:border-accent focus:ring-2 focus:ring-accent/40"
+                />
+              </div>
+              <Button type="submit" size="lg" loading={scanning} className="h-14 sm:w-40">
+                Validate
+              </Button>
             </div>
+          </form>
+
+          <AnimatePresence mode="wait">
+            {result && (
+              <motion.div
+                key={result.kind + (result.data?._id || result.value || result.message || '')}
+                initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8 }}
+                className={cn('mt-6 rounded-2xl border p-5', resultStyles[result.kind])}
+              >
+                <div className="flex items-start gap-3">
+                  {result.kind === 'success' ? (
+                    <CheckCircle2 className="h-6 w-6 shrink-0" />
+                  ) : result.kind === 'duplicate' ? (
+                    <AlertTriangle className="h-6 w-6 shrink-0" />
+                  ) : result.kind === 'queued' ? (
+                    <CloudUpload className="h-6 w-6 shrink-0" />
+                  ) : (
+                    <AlertCircle className="h-6 w-6 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <p className="font-display text-lg font-bold">
+                      {result.kind === 'success' && 'Access granted'}
+                      {result.kind === 'duplicate' && 'Already checked in'}
+                      {result.kind === 'error' && 'Access denied'}
+                      {result.kind === 'queued' && 'Saved offline'}
+                    </p>
+                    {result.kind === 'success' && result.data && (
+                      <div className="mt-1 space-y-0.5 text-sm opacity-90">
+                        <p><span className="font-semibold">{result.data.attendee?.name}</span> · {result.data.attendee?.email}</p>
+                        <p>{result.data.event?.title}</p>
+                      </div>
+                    )}
+                    {result.message && <p className="mt-1 text-sm opacity-90">{result.message}</p>}
+                    {result.kind === 'queued' && (
+                      <p className="mt-1 text-sm opacity-90">It will be validated automatically once you’re back online.</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Audit log */}
+        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
+            <History className="h-4 w-4" /> Session audit trail
+          </div>
+          {history.length === 0 ? (
+            <p className="mt-4 text-sm text-slate-500">No scans recorded yet in this session.</p>
+          ) : (
+            <ul className="mt-4 divide-y divide-white/5">
+              {history.map((h, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 py-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-white">
+                      {h.name || 'Unknown attendee'}
+                    </p>
+                    <p className="truncate font-mono text-xs text-slate-500">{h.code}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-xs text-slate-500">{timeAgo(h.time)}</span>
+                    <Badge
+                      variant={
+                        h.status === 'Checked-In'
+                          ? 'success'
+                          : h.status === 'Duplicate'
+                            ? 'warning'
+                            : h.status === 'Denied'
+                              ? 'danger'
+                              : 'accent'
+                      }
+                    >
+                      {h.status}
+                    </Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-      )}
-
-      {/* Recent Scans Audit Trail */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-6 shadow-sm">
-        <div className="flex items-center space-x-2 mb-4">
-          <History className="w-4 h-4 text-slate-500" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Recent Gate Scans (Audit Log)</h3>
-        </div>
-        {recentScans.length === 0 ? (
-          <p className="text-xs text-slate-400">No scans recorded in current session.</p>
-        ) : (
-          <div className="space-y-3">
-            {recentScans.map((scan, idx) => (
-              <div key={idx} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800 text-xs">
-                <div>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">{scan.name}</span>
-                  <span className="text-slate-500 ml-2">({scan.event})</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="text-slate-400">{scan.time}</span>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-semibold rounded">{scan.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
-};
+}

@@ -1,43 +1,57 @@
 import React from 'react';
+import { FileText } from 'lucide-react';
 
-export default ({ setCurrentPage }) => {
+const SECTIONS = [
+  {
+    title: '1. Acceptance of terms',
+    body: 'By accessing or using the Event Management System (EMS), you agree to be bound by these Terms of Service and all applicable laws and regulations. If you do not agree, you may not use the platform.',
+  },
+  {
+    title: '2. Accounts and registration',
+    body: 'You are responsible for maintaining the confidentiality of your account credentials and for all activity that occurs under your account. You must provide accurate information and promptly update it as needed.',
+  },
+  {
+    title: '3. Tickets and bookings',
+    body: 'Tickets issued through EMS are subject to event-specific terms set by the organizer. Each ticket carries a unique, single-use QR code. Duplicate or fraudulent use may result in denial of entry.',
+  },
+  {
+    title: '4. Organizer responsibilities',
+    body: 'Organizers are solely responsible for the events they publish, including accuracy of content, venue safety, and honoring tickets sold. EMS provides tooling but does not operate events.',
+  },
+  {
+    title: '5. Acceptable use',
+    body: 'You agree not to misuse the platform, attempt unauthorized access, disrupt scanning or check-in operations, or use automated systems to abuse ticket inventory.',
+  },
+  {
+    title: '6. Limitation of liability',
+    body: 'EMS is provided "as is" without warranties of any kind. To the maximum extent permitted by law, EMS is not liable for indirect, incidental, or consequential damages arising from your use of the platform.',
+  },
+  {
+    title: '7. Changes to terms',
+    body: 'We may update these terms from time to time. Continued use after changes take effect constitutes acceptance of the revised terms.',
+  },
+];
+
+export default function Terms() {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12 text-slate-800 dark:text-slate-200">
-      <h1 className="text-3xl font-bold tracking-tight mb-2">Terms & Conditions</h1>
-      <p className="text-sm text-slate-500 mb-8">Last updated: August 30, 2026</p>
-
-      <div className="space-y-6 text-sm leading-relaxed">
-        <section>
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">1. Agreement to Terms</h2>
-          <p>By accessing or using the Enterprise Event Management System ("EMS"), you agree to be bound by these Terms and Conditions. If you disagree with any part of these terms, you may not access our platform or services.</p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">2. Ticketing & Seat Allocation</h2>
-          <p>All ticket purchases and event registrations are processed through atomic distributed locking mechanisms. Once a ticket is confirmed and issued with a cryptographic QR hash, your seat is reserved. EMS guarantees zero overbooking via strict database concurrency controls.</p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">3. User Conduct & Accounts</h2>
-          <p>Users must provide accurate information when registering accounts (Attendee or Organizer). You are responsible for safeguarding your credentials and JWT session tokens. Unauthorized gate scanning attempts or fraudulent ticket duplication will result in immediate account termination and potential legal liability.</p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">4. Limitation of Liability</h2>
-          <p>EMS provides event infrastructure and ticketing software. Event organizers are solely responsible for venue safety, event execution, schedule changes, and refund policies. EMS shall not be held liable for indirect, incidental, or consequential damages arising from event cancellations or venue disruptions.</p>
-        </section>
-
-        <section>
-          <h2 className="text-lg font-bold mb-2 text-slate-900 dark:text-white">5. Governing Law</h2>
-          <p>These terms shall be governed by and construed in accordance with applicable commercial and technology jurisdiction laws, without regard to conflict of law provisions.</p>
-        </section>
-
-        <div className="pt-6">
-          <button onClick={() => setCurrentPage('home')} className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold rounded">
-            Back to Home
-          </button>
+    <div className="container max-w-3xl py-12">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <FileText className="h-5 w-5" />
+        </span>
+        <div>
+          <h1 className="font-display text-3xl font-extrabold tracking-tight">Terms of Service</h1>
+          <p className="text-sm text-muted-foreground">Last updated {new Date().getFullYear()}</p>
         </div>
+      </div>
+      <div className="mt-8 space-y-8">
+        {SECTIONS.map((s) => (
+          <section key={s.title}>
+            <h2 className="font-display text-lg font-bold">{s.title}</h2>
+            <p className="mt-2 text-muted-foreground">{s.body}</p>
+          </section>
+        ))}
       </div>
     </div>
   );
-};
+}

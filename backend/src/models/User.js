@@ -28,27 +28,27 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 const MongooseUser = mongoose.models.User || mongoose.model('User', userSchema);
 
 module.exports = {
-  findOne: async (query, projection, options) => {
+  findOne: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.users.findOne(query));
     return MongooseUser.findOne(query, projection, options);
   },
-  find: async (query, projection, options) => {
+  find: (query, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.users.find(query));
     return MongooseUser.find(query, projection, options);
   },
-  findById: async (id, projection, options) => {
+  findById: (id, projection, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.users.findById(id));
     return MongooseUser.findById(id, projection, options);
   },
-  create: async (doc) => {
+  create: (doc) => {
     if (global.USE_MEMORY_DB) return memoryDb.users.create(doc);
     return MongooseUser.create(doc);
   },
-  countDocuments: async (query) => {
+  countDocuments: (query) => {
     if (global.USE_MEMORY_DB) return memoryDb.users.countDocuments(query);
     return MongooseUser.countDocuments(query);
   },
-  findOneAndUpdate: async (query, update, options) => {
+  findOneAndUpdate: (query, update, options) => {
     if (global.USE_MEMORY_DB) return makeChainable(memoryDb.users.findOneAndUpdate(query, update, options));
     return MongooseUser.findOneAndUpdate(query, update, options);
   }
