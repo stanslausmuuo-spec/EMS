@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { CommandPalette } from './CommandPalette';
@@ -55,9 +55,8 @@ export function AppShell() {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Navbar onOpenCommand={() => setCommandOpen(true)} />
       <main id="main-content" className="flex-1">
-        <AnimatePresence mode="wait">
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+        <Routes>
+          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
             <Route path="/events/:id" element={<PageTransition><EventDetail /></PageTransition>} />
             <Route path="/agenda" element={<PageTransition><EventAgenda /></PageTransition>} />
             <Route
@@ -98,7 +97,6 @@ export function AppShell() {
             <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
             <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
           </Routes>
-        </AnimatePresence>
       </main>
       <Footer />
       <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />

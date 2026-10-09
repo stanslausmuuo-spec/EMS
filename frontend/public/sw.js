@@ -1,16 +1,12 @@
-const CACHE_NAME = 'ems-pwa-v2';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/favicon.svg',
-  '/manifest.json'
-];
+const CACHE_NAME = 'ems-pwa-v3';
+const STATIC_ASSETS = ['/favicon.svg', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .catch(() => {})
   );
   self.skipWaiting();
 });
@@ -18,42 +14,62 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
-      return Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
+      return Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)));
     })
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // NEVER intercept API requests, non-GET requests, or cross-origin backend calls
-  if (url.pathname.includes('/api/') || event.request.method !== 'GET' || url.origin !== location.origin) {
+  // Never intercept API calls, realtime sockets, cross-origin requests, or non-GET
+  if (
+    request.method !== 'GET' ||
+    url.origin !== location.origin ||
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/socket.io')
+  ) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request).then((response) => {
+  // Navigations: always try the network first (fresh index.html on every deploy),
+  // falling back to the cached app shell only when truly offline.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
           if (response && response.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, response);
-            });
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy));
           }
-        }).catch(() => {});
-        return cachedResponse;
+          return response;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Other same-origin GETs (hashed assets, icons): cache-first with background refresh.
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      if (cached) {
+        fetch(request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, response));
+            }
+          })
+          .catch(() => {});
+        return cached;
       }
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+      return fetch(request).then((response) => {
+        if (response && response.status === 200) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
         }
+        return response;
       });
     })
   );
