@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ems-pwa-v4';
+const CACHE_NAME = 'ems-pwa-v5';
 const STATIC_ASSETS = ['/favicon.svg', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
