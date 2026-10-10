@@ -39,9 +39,10 @@ export function AIChatWidget() {
         ...prev,
         {
           sender: 'ai',
-          text: data.success
-            ? data.data.reply
-            : 'Sorry, I couldn’t answer that right now. Please try again.',
+          text:
+            data?.success && data?.data?.reply
+              ? data.data.reply
+              : 'Sorry, I couldn’t answer that right now. Please try again.',
         },
       ]);
     } catch {

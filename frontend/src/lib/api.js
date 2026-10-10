@@ -38,13 +38,48 @@ function buildHeaders(options = {}) {
   return headers;
 }
 
+const DEFAULT_TIMEOUT = 20000;
+
 export async function apiFetch(endpoint, options = {}) {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+  const { signal, timeout = DEFAULT_TIMEOUT, ...rest } = options;
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const onAbort = () => controller.abort();
+
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', onAbort);
+  }
+
+  let timer;
+  if (timeout > 0) {
+    timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeout);
+  }
+
   try {
-    return await fetch(url, { ...options, headers: buildHeaders(options) });
+    return await fetch(url, {
+      ...rest,
+      signal: controller.signal,
+      headers: buildHeaders(options),
+    });
   } catch (error) {
-    console.error(`API network error [${endpoint}]:`, error.message);
+    if (error?.name === 'AbortError') {
+      if (timedOut) {
+        console.error(`API timeout [${endpoint}] after ${timeout}ms`);
+        throw new Error('The server took too long to respond. Please try again.');
+      }
+      throw error;
+    }
+    console.error(`API network error [${endpoint}]:`, error?.message);
     throw new Error('Unable to reach the EMS server. Check your connection and try again.');
+  } finally {
+    if (timer) clearTimeout(timer);
+    if (signal) signal.removeEventListener('abort', onAbort);
   }
 }
 

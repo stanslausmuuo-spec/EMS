@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Download, Mail, Radar, Search, Target, UserPlus } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, apiFetch } from '../lib/api';
 import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -80,13 +80,12 @@ export default function ExhibitorLeads() {
 
   const exportCSV = async () => {
     try {
-      const res = await fetch('/api/leads/export', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('ems_token')}` },
-      });
+      const res = await apiFetch('/api/leads/export');
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
       downloadBlob(await res.blob(), 'exhibitor-leads.csv');
       toast.success('Export ready', 'Your CSV has been downloaded.');
-    } catch {
-      toast.error('Export failed');
+    } catch (err) {
+      toast.error('Export failed', err.message);
     }
   };
 

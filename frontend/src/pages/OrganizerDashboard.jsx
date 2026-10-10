@@ -7,7 +7,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import { api } from '../lib/api';
+import { api, apiFetch } from '../lib/api';
 import { createSocket } from '../lib/socket';
 import { downloadBlob } from '../lib/utils';
 import { useToast } from '../components/ui/Toast';
@@ -111,13 +111,12 @@ export default function OrganizerDashboard() {
   const exportCSV = async () => {
     if (!selectedId) return;
     try {
-      const res = await fetch(`/api/check-in/events/${selectedId}/attendees/csv`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem('ems_token')}` },
-      });
+      const res = await apiFetch(`/api/check-in/events/${selectedId}/attendees/csv`);
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
       const blob = await res.blob();
       downloadBlob(blob, `attendees-${selectedId}.csv`);
-    } catch {
-      toast.error('Export failed');
+    } catch (err) {
+      toast.error('Export failed', err.message);
     }
   };
 
