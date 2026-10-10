@@ -35,23 +35,37 @@ const SECTIONS = [
 export default function Privacy() {
   return (
     <div className="container max-w-3xl py-12">
-      <div className="flex items-center gap-3">
-        <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-success/10 text-success">
-          <ShieldCheck className="h-5 w-5" />
-        </span>
+      <p className="eyebrow !text-primary">
+        <ShieldCheck className="h-3.5 w-3.5" /> Legal
+      </p>
+      <div className="mt-3 flex items-end justify-between gap-4 border-b border-border pb-6">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground">Your privacy matters to us</p>
+          <h1 className="font-display text-4xl font-bold tracking-tight">Privacy Policy</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Your privacy matters to us</p>
         </div>
+        <span className="hidden font-mono text-xs uppercase tracking-[0.25em] text-faint sm:block">v1.0</span>
       </div>
-      <div className="mt-8 space-y-8">
-        {SECTIONS.map((s) => (
-          <section key={s.title}>
-            <h2 className="font-display text-lg font-semibold">{s.title}</h2>
-            <p className="mt-2 text-muted-foreground">{s.body}</p>
-          </section>
+
+      <ol className="mt-2">
+        {SECTIONS.map((s, i) => (
+          <li
+            key={s.title}
+            className="grid gap-3 border-b border-border py-7 sm:grid-cols-[3.5rem_1fr] sm:gap-6"
+          >
+            <span className="font-mono text-sm tabular text-primary">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <div>
+              <h2 className="font-display text-xl font-bold tracking-tight">{s.title}</h2>
+              <p className="mt-2 leading-relaxed text-muted-foreground">{s.body}</p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
+
+      <p className="mt-8 rounded-2xl border border-dashed border-border-strong bg-surface-1/60 p-5 text-sm text-muted-foreground">
+        To exercise your data rights, contact the platform administrator from your account settings.
+      </p>
     </div>
   );
 }

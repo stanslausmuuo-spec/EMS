@@ -5,9 +5,13 @@ import {
   ArrowRight,
   CalendarDays,
   Compass,
+  RadioTower,
   Search,
+  ShieldCheck,
   Sparkles,
+  Ticket,
   TrendingUp,
+  WifiOff,
   X,
 } from 'lucide-react';
 import { api } from '../lib/api';
@@ -15,10 +19,12 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/ui/Toast';
 import { EventCard } from '../components/EventCard';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 import { Input, Select } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { cn } from '../lib/utils';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { cn, coverAccent, coverGlow, coverGradient, coverNumeral, formatDate, seatsLeft, isSoldOut } from '../lib/utils';
 
 const CATEGORIES = ['Tech', 'Music', 'Business', 'Workshop'];
 const SAVED_KEY = 'ems_saved_events';
@@ -30,6 +36,12 @@ function readSaved() {
     return [];
   }
 }
+
+const PROOF_ITEMS = [
+  { icon: ShieldCheck, label: 'Zero-overbook ticketing' },
+  { icon: WifiOff, label: 'Offline-first check-in' },
+  { icon: RadioTower, label: 'Live gate dashboards' },
+];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -109,18 +121,26 @@ export default function Home() {
   const rest = useMemo(() => events.slice(1), [events]);
 
   const hasFilters = search || category || date;
+  const clearFilters = () => {
+    setSearch('');
+    setCategory('');
+    setDate('');
+  };
 
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border">
+      <section className="relative overflow-hidden border-b border-border bg-mesh">
+        <div className="absolute inset-0 surface-grid opacity-60" />
         <div className="absolute inset-0 bg-radial-fade" />
+        <div aria-hidden="true" className="grain absolute inset-0" />
         <div className="container relative py-16 sm:py-24">
           <div className="mx-auto max-w-3xl text-center">
             <motion.span
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground"
+              transition={{ ease: [0.16, 1, 0.3, 1] }}
+              className="glass inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold text-muted-foreground"
             >
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Zero-overbook ticketing · Offline-first check-in
@@ -129,17 +149,18 @@ export default function Home() {
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="mt-5 font-display text-[clamp(2.5rem,7vw,4.5rem)] font-medium leading-[1.05] tracking-tight">
+              transition={{ delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-6 font-display text-[clamp(2.75rem,7vw,5rem)] font-bold leading-[1.02] tracking-tighter"
             >
-              Discover experiences <span className="text-gradient">worth showing up for</span>
+              Discover experiences{' '}
+              <span className="text-gradient">worth showing up for</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="mx-auto mt-4 max-w-xl text-base text-muted-foreground sm:text-lg"
+              transition={{ delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+              className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg"
             >
               Secure your seat in seconds, carry your pass offline, and breeze through the gate.
             </motion.p>
@@ -147,8 +168,8 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="mt-8 flex flex-col gap-3 rounded-2xl border border-border bg-card p-2 shadow-surface sm:flex-row sm:items-center"
+              transition={{ delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-8 flex flex-col gap-2 rounded-2xl border border-border-strong bg-surface-2/90 p-1.5 shadow-overlay backdrop-blur-xl sm:flex-row sm:items-center"
             >
               <div className="relative flex-1">
                 <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -160,7 +181,7 @@ export default function Home() {
                   aria-label="Search events"
                 />
               </div>
-              <div className="hidden h-8 w-px bg-border sm:block" />
+              <div className="hidden h-7 w-px bg-border sm:block" />
               <Select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -172,7 +193,7 @@ export default function Home() {
                   <option key={c} value={c}>{c}</option>
                 ))}
               </Select>
-              <div className="hidden h-8 w-px bg-border sm:block" />
+              <div className="hidden h-7 w-px bg-border sm:block" />
               <Input
                 type="date"
                 value={date}
@@ -182,30 +203,39 @@ export default function Home() {
               />
               <Button
                 size="md"
-                className="sm:px-6"
+                className="sm:px-7"
                 onClick={() => document.getElementById('event-grid')?.scrollIntoView({ behavior: 'smooth' })}
               >
                 Explore
               </Button>
             </motion.div>
 
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCategory(category === c ? '' : c)}
-                  className={cn(
-                    'rounded-full border px-3.5 py-1.5 text-xs font-semibold transition',
-                    category === c
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border bg-card/60 text-muted-foreground hover:border-primary/40 hover:text-foreground',
-                  )}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-7 flex justify-center"
+            >
+              <SegmentedControl
+                ariaLabel="Filter by category"
+                options={['All', ...CATEGORIES]}
+                value={category}
+                onChange={(v) => setCategory(v === 'All' ? '' : v)}
+              />
+            </motion.div>
           </div>
+        </div>
+      </section>
+
+      {/* Proof strip */}
+      <section className="border-b border-border bg-surface-1">
+        <div className="container flex flex-wrap items-center justify-center gap-x-8 gap-y-2 py-4">
+          {PROOF_ITEMS.map(({ icon: Icon, label }) => (
+            <span key={label} className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+              <Icon className="h-3.5 w-3.5 text-primary" />
+              {label}
+            </span>
+          ))}
         </div>
       </section>
 
@@ -218,24 +248,15 @@ export default function Home() {
           className="mb-8 flex items-end justify-between gap-4"
         >
           <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-              <Compass className="h-4 w-4" />
-              Browse
-            </div>
-            <h2 className="mt-1 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-semibold tracking-tight">
+            <p className="eyebrow !text-primary">
+              <Compass className="h-3.5 w-3.5" /> Browse
+            </p>
+            <h2 className="mt-1 font-display text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-tight">
               {hasFilters ? 'Matching events' : 'Upcoming events'}
             </h2>
           </div>
           {hasFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setSearch('');
-                setCategory('');
-                setDate('');
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4" /> Clear filters
             </Button>
           )}
@@ -244,8 +265,8 @@ export default function Home() {
         {loading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-2xl border border-border bg-card">
-                <Skeleton className="h-40 rounded-none" />
+              <div key={i} className="overflow-hidden rounded-3xl border border-border bg-surface-2">
+                <Skeleton className="h-44 rounded-none" />
                 <div className="space-y-3 p-5">
                   <Skeleton className="h-5 w-3/4" />
                   <Skeleton className="h-4 w-full" />
@@ -269,14 +290,7 @@ export default function Home() {
             description={hasFilters ? 'Try clearing filters or searching for something else.' : 'Check back soon for new events.'}
             action={
               hasFilters ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setSearch('');
-                    setCategory('');
-                    setDate('');
-                  }}
-                >
+                <Button variant="secondary" onClick={clearFilters}>
                   Clear filters
                 </Button>
               ) : null
@@ -289,6 +303,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-40px' }}
+                transition={{ ease: [0.16, 1, 0.3, 1] }}
                 className="mb-10 grid gap-6 lg:grid-cols-5"
               >
                 <FeaturedSpotlight
@@ -337,38 +352,68 @@ export default function Home() {
 }
 
 function FeaturedSpotlight({ event, saved, onToggleSave, onView, onRegister, registering }) {
-  const soldOut = (event.capacity || 0) - (event.soldTickets || 0) <= 0;
+  const soldOut = isSoldOut(event);
+  const left = seatsLeft(event);
+  const numeral = coverNumeral(event.title);
+  const gradient = coverGradient(event);
+  const accent = coverAccent(event);
+  const glow = coverGlow(event);
+
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card p-7 shadow-surface lg:col-span-3">
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/10 to-transparent" />
-      <div className="relative flex flex-1 flex-col">
-        <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Featured
-          </span>
+    <div className="card-hover group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-surface-2 shadow-surface lg:col-span-3">
+      <div className={cn('relative shrink-0 overflow-hidden bg-gradient-to-br px-7 pb-5 pt-7', gradient)}>
+        <span
+          aria-hidden="true"
+          className={cn(
+            'absolute -top-6 right-4 select-none font-display text-[8rem] font-bold leading-none tracking-tighter opacity-[0.16]',
+            accent,
+          )}
+        >
+          {numeral}
+        </span>
+        <span
+          aria-hidden="true"
+          className="absolute -left-16 top-6 h-56 w-56 rounded-full blur-3xl"
+          style={{ backgroundColor: glow }}
+        />
+        <div aria-hidden="true" className="grain absolute inset-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+        <div className="relative flex items-center justify-between">
+          <Badge variant="default" className="glass border-white/15 gap-1.5 !text-foreground">
+            <Sparkles className="h-3.5 w-3.5 text-primary" /> Featured
+          </Badge>
           <button
             type="button"
             onClick={onToggleSave}
-            aria-label="Save event"
-            className="rounded-full p-2 text-muted-foreground transition hover:bg-card hover:text-danger"
+            aria-label={saved ? 'Remove from saved' : 'Save event'}
+            className={cn(
+              'rounded-full p-2 transition hover:bg-black/20',
+              saved ? 'text-danger' : 'text-white/80 hover:text-danger',
+            )}
           >
-            <Sparkles className={cn('hidden h-4 w-4', saved && 'block fill-danger text-danger')} />
-            <span className={cn('text-sm', saved && 'hidden')}>Save</span>
+            <Heart className={cn('h-4 w-4', saved && 'fill-danger text-danger')} />
           </button>
         </div>
-        <h3 className="mt-6 font-display text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+
+        <h3 className="relative mt-6 max-w-xl font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
           {event.title}
         </h3>
-        <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">{event.description}</p>
-        <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+        <div className="relative mt-3 flex flex-wrap items-center gap-4 text-sm text-white/80">
           <span className="flex items-center gap-1.5">
-            <CalendarDays className="h-4 w-4 text-primary" />
-            {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+            <CalendarDays className="h-4 w-4" />
+            {formatDate(event.date, { weekday: 'long', month: 'long', day: 'numeric' })}
           </span>
-          <span className="flex items-center gap-1.5">{event.location}</span>
+          <span>{event.location}</span>
+          {!soldOut && <Badge variant="warning">{left} left</Badge>}
         </div>
-        <div className="mt-8 flex flex-wrap gap-3">
+      </div>
+
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <p className="line-clamp-2 text-sm text-muted-foreground sm:text-base">{event.description}</p>
+        <div className="mt-auto flex flex-wrap gap-3 pt-6">
           <Button size="lg" loading={registering} disabled={soldOut} onClick={onRegister}>
+            <Ticket className="h-4 w-4" />
             {soldOut ? 'Sold out' : 'Book my seat'}
           </Button>
           <Button size="lg" variant="secondary" onClick={onView}>

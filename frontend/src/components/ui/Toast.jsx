@@ -8,23 +8,23 @@ const ToastContext = createContext(null);
 const VARIANTS = {
   success: {
     icon: CheckCircle2,
-    classes: 'border-success/30 text-success',
-    bar: 'bg-success',
+    classes: 'text-success',
+    glow: 'bg-success',
   },
   error: {
     icon: XCircle,
-    classes: 'border-danger/30 text-danger',
-    bar: 'bg-danger',
+    classes: 'text-danger',
+    glow: 'bg-danger',
   },
   warning: {
     icon: AlertTriangle,
-    classes: 'border-warning/30 text-warning',
-    bar: 'bg-warning',
+    classes: 'text-warning',
+    glow: 'bg-warning',
   },
   info: {
     icon: Info,
-    classes: 'border-primary/30 text-primary',
-    bar: 'bg-primary',
+    classes: 'text-primary',
+    glow: 'bg-primary',
   },
 };
 
@@ -71,14 +71,22 @@ export function ToastProvider({ children }) {
               <motion.div
                 key={t.id}
                 layout
-                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                initial={{ opacity: 0, y: 20, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 32, scale: 0.96 }}
                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border border-border bg-card p-4 pr-10 shadow-overlay"
+                className="pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-2xl border border-border-strong bg-surface-2 p-4 pr-10 shadow-overlay"
                 role="status"
+                aria-live="assertive"
               >
-                <span className={cn('absolute inset-y-0 left-0 w-1', v.bar)} />
+                <span
+                  className={cn(
+                    'absolute inset-y-0 left-0 w-[3px] shadow-[0_0_16px_2px]',
+                    v.glow,
+                  )}
+                  style={{ boxShadow: `0 0 18px 1px ${'currentColor'}` }}
+                />
+                <span className={cn('absolute inset-y-0 left-0 w-[3px]', v.glow)} />
                 <div className="flex items-start gap-3">
                   <Icon className={cn('mt-0.5 h-5 w-5 shrink-0', v.classes)} />
                   <div className="min-w-0">
@@ -90,7 +98,7 @@ export function ToastProvider({ children }) {
                 </div>
                 <button
                   onClick={() => dismiss(t.id)}
-                  className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  className="absolute right-2 top-2 rounded-xl p-1 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
                   aria-label="Dismiss notification"
                 >
                   <X className="h-4 w-4" />

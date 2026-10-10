@@ -8,8 +8,6 @@ import {
   History,
   QrCode,
   ScanLine,
-  Wifi,
-  WifiOff,
 } from 'lucide-react';
 import { saveOfflineScan, getOfflineScans, clearOfflineScans } from '../utils/indexedDB';
 import { api } from '../lib/api';
@@ -85,18 +83,27 @@ export default function GateScanner() {
     const scans = await getOfflineScans();
     if (!scans.length) return;
     setSyncing(true);
-    try {
-      for (const scan of scans) {
-        await api.post('/api/check-in/scan', { qrCodeHash: scan.qrCodeHash });
+    let synced = 0;
+    let failed = 0;
+    for (const scan of scans) {
+      try {
+        const res = await api.post('/api/check-in/scan', { qrCodeHash: scan.qrCodeHash });
+        if (res?.success) synced += 1;
+        else failed += 1;
+      } catch {
+        failed += 1;
       }
+    }
+    if (failed === 0) {
       await clearOfflineScans();
       setQueueCount(0);
-      toast.success('Offline scans synced', `${scans.length} scan(s) reconciled.`);
-    } catch {
+      toast.success('Offline scans synced', `${synced} scan(s) reconciled.`);
+    } else if (synced > 0) {
+      toast.error('Partial sync', `${synced} reconciled, ${failed} still queued for retry.`);
+    } else {
       toast.error('Sync failed', 'Will retry when the connection is stable.');
-    } finally {
-      setSyncing(false);
     }
+    setSyncing(false);
   }, [toast]);
 
   useEffect(() => {
@@ -165,42 +172,46 @@ export default function GateScanner() {
   };
 
   const resultStyles = {
-    success: 'border-success/40 bg-success/10 text-success',
+    success: 'border-primary/40 bg-primary/10 text-foreground',
     duplicate: 'border-warning/40 bg-warning/10 text-warning',
     error: 'border-danger/40 bg-danger/10 text-danger',
     queued: 'border-accent/40 bg-accent/10 text-accent',
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-ink-950 text-slate-100">
-      <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-canvas text-foreground">
+      <div className="absolute inset-0 bg-mesh opacity-40" />
+      <div className="absolute inset-0 surface-grid opacity-40" />
+      <div aria-hidden="true" className="grain absolute inset-0" />
+      <div className="relative mx-auto max-w-4xl px-4 py-8">
+        {/* Terminal header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-white">
-              Gate Check-in
-            </h1>
-            <p className="text-sm text-slate-400">Scan fast, validate offline, sync automatically.</p>
+          <div className="min-w-0">
+            <p className="eyebrow !text-primary">
+              <ScanLine className="h-3.5 w-3.5" /> Gate·01 · Terminal
+            </p>
+            <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">Check-in</h1>
+            <p className="mt-1 text-sm text-muted-foreground">Scan fast, validate offline, sync automatically.</p>
           </div>
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold',
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold',
                 online
                   ? 'border-success/40 bg-success/10 text-success'
                   : 'border-warning/40 bg-warning/10 text-warning',
               )}
             >
-              {online ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+              <span className="relative flex h-2 w-2" aria-hidden="true">
+                {online && (
+                  <span className={cn('absolute inline-flex h-full w-full animate-ping rounded-full opacity-60', online ? 'bg-success' : 'bg-warning')} />
+                )}
+                <span className={cn('relative inline-flex h-2 w-2 rounded-full', online ? 'bg-success' : 'bg-warning')} />
+              </span>
               {online ? 'Online' : 'Offline mode'}
             </span>
             {queueCount > 0 && (
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={syncing}
-                onClick={syncQueue}
-                className="border-white/15 bg-white/5 text-white hover:bg-white/10"
-              >
+              <Button size="sm" variant="secondary" loading={syncing} onClick={syncQueue}>
                 <CloudUpload className="h-3.5 w-3.5" /> Sync {queueCount}
               </Button>
             )}
@@ -208,24 +219,28 @@ export default function GateScanner() {
         </div>
 
         {/* Scanner */}
-        <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-[#111a2c] p-6 sm:p-8">
+        <div className="relative mt-8 overflow-hidden rounded-3xl border border-border-strong bg-surface-2 p-6 shadow-overlay sm:p-8">
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
           {result?.kind === 'success' && (
             <motion.div
               key={`flash-${result.data?._id || result.value || ''}`}
               initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.65, 0] }}
+              animate={{ opacity: [0, 0.55, 0] }}
               transition={{ duration: 0.7, ease: 'easeOut' }}
               aria-hidden="true"
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50% 35%,rgb(79_70_229/0.5),transparent_70%)]"
+              className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50% 35%,rgb(var(--primary)/0.45),transparent_70%)]"
             />
           )}
-          <form onSubmit={handleScan} className="space-y-4 relative">
-            <label htmlFor="scan-input" className="flex items-center gap-2 text-sm font-medium text-slate-300">
-              <ScanLine className="h-4 w-4 text-accent" /> Scan or paste a ticket code
+          <form onSubmit={handleScan} className="relative space-y-5">
+            <label htmlFor="scan-input" className="flex items-center justify-between gap-2 text-sm font-medium text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <ScanLine className="h-4 w-4 text-primary" /> Scan or paste a ticket code
+              </span>
+              <span className="hidden font-mono text-[11px] uppercase tracking-widest text-faint sm:inline">expects 40-char hash</span>
             </label>
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
-                <QrCode className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500" />
+                <QrCode className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
                 <input
                   id="scan-input"
                   ref={inputRef}
@@ -233,7 +248,7 @@ export default function GateScanner() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="QR hash…"
-                  className="h-14 w-full rounded-2xl border border-white/10 bg-ink-900/80 pl-11 pr-4 font-mono text-base text-white outline-none transition placeholder:text-slate-500 focus:border-accent focus:ring-2 focus:ring-accent/40"
+                  className="h-14 w-full rounded-2xl border border-border-strong bg-inset pl-12 pr-4 font-mono text-base text-foreground shadow-inner outline-none transition placeholder:text-faint focus:border-primary focus:ring-2 focus:ring-primary/30"
                 />
               </div>
               <Button type="submit" size="lg" loading={scanning} className="h-14 sm:w-40">
@@ -249,13 +264,25 @@ export default function GateScanner() {
                 initial={{ opacity: 0, y: 12, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8 }}
-                className={cn('relative mt-6 rounded-2xl border p-5', resultStyles[result.kind])}
+                transition={{ ease: [0.16, 1, 0.3, 1] }}
+                className={cn('relative mt-6 overflow-hidden rounded-2xl border p-5', resultStyles[result.kind])}
                 role="status"
                 aria-live="assertive"
               >
+                {result.kind === 'success' && (
+                  <motion.span
+                    aria-hidden="true"
+                    initial={{ scale: 2.4, rotate: -18, opacity: 0 }}
+                    animate={{ scale: 1, rotate: -12, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 18 }}
+                    className="pointer-events-none absolute right-4 top-4 inline-flex -rotate-12 items-center rounded border-2 border-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary"
+                  >
+                    Admit one
+                  </motion.span>
+                )}
                 <div className="flex items-start gap-3">
                   {result.kind === 'success' ? (
-                    <CheckCircle2 className="h-6 w-6 shrink-0" />
+                    <CheckCircle2 className="h-6 w-6 shrink-0 text-primary" />
                   ) : result.kind === 'duplicate' ? (
                     <AlertTriangle className="h-6 w-6 shrink-0" />
                   ) : result.kind === 'queued' ? (
@@ -264,27 +291,19 @@ export default function GateScanner() {
                     <AlertCircle className="h-6 w-6 shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <p className="font-display text-lg font-semibold">
+                    <p className="font-display text-xl font-bold">
                       {result.kind === 'success' && 'Access granted'}
                       {result.kind === 'duplicate' && 'Already checked in'}
                       {result.kind === 'error' && 'Access denied'}
                       {result.kind === 'queued' && 'Saved offline'}
                     </p>
                     {result.kind === 'success' && result.data && (
-                      <>
-                        <motion.span
-                          initial={{ scale: 2.4, rotate: -18, opacity: 0 }}
-                          animate={{ scale: 1, rotate: -12, opacity: 1 }}
-                          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
-                          className="pointer-events-none absolute right-4 top-4 inline-flex -rotate-12 items-center rounded border-2 border-success/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-success/90"
-                        >
-                          Checked in
-                        </motion.span>
-                        <div className="mt-1 space-y-0.5 text-sm opacity-90">
-                        <p><span className="font-semibold">{result.data.attendee?.name}</span> · {result.data.attendee?.email}</p>
+                      <div className="mt-1.5 space-y-0.5 text-sm text-muted-foreground">
+                        <p className="font-semibold text-foreground">
+                          {result.data.attendee?.name} · {result.data.attendee?.email}
+                        </p>
                         <p>{result.data.event?.title}</p>
                       </div>
-                      </>
                     )}
                     {result.message && <p className="mt-1 text-sm opacity-90">{result.message}</p>}
                     {result.kind === 'queued' && (
@@ -298,24 +317,31 @@ export default function GateScanner() {
         </div>
 
         {/* Audit log */}
-        <div className="mt-8 rounded-3xl border border-white/10 bg-[#111a2c] p-6">
-          <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
-            <History className="h-4 w-4" /> Session audit trail
+        <div className="relative mt-8 overflow-hidden rounded-3xl border border-border-strong bg-surface-2 p-6 shadow-overlay">
+          <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <History className="h-4 w-4 text-accent" /> Session audit trail
           </div>
           {history.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">No scans recorded yet in this session.</p>
+            <p className="mt-4 text-sm text-faint">No scans recorded yet in this session.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-white/5">
+            <ul className="mt-4 divide-y divide-border">
               {history.map((h, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 py-3">
+                <motion.li
+                  key={i}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ease: [0.16, 1, 0.3, 1] }}
+                  className="flex items-center justify-between gap-3 py-3"
+                >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">
+                    <p className="truncate text-sm font-semibold text-foreground">
                       {h.name || 'Unknown attendee'}
                     </p>
-                    <p className="truncate font-mono text-xs text-slate-500">{h.code}</p>
+                    <p className="truncate font-mono text-xs text-faint">{h.code}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <span className="text-xs text-slate-500">{timeAgo(h.time)}</span>
+                    <span className="text-xs text-faint">{timeAgo(h.time)}</span>
                     <Badge
                       variant={
                         h.status === 'Checked-In'
@@ -330,7 +356,7 @@ export default function GateScanner() {
                       {h.status}
                     </Badge>
                   </div>
-                </li>
+                </motion.li>
               ))}
             </ul>
           )}

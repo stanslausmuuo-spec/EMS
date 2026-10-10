@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bot, Send, Sparkles, X } from 'lucide-react';
 import { api } from '../lib/api';
 import { cn } from '../lib/utils';
+import { LivePulse } from './ui/LivePulse';
 
 const SUGGESTIONS = [
   'What events are happening this week?',
@@ -59,51 +60,57 @@ export function AIChatWidget() {
         {open ? (
           <motion.div
             key="panel"
-            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            role="dialog"
+            aria-label="AI concierge chat"
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="flex h-[30rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-overlay"
+            exit={{ opacity: 0, y: 20, scale: 0.97 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+            className="flex h-[30rem] w-[calc(100vw-3rem)] max-w-sm flex-col overflow-hidden rounded-3xl border border-border-strong bg-surface-2 shadow-overlay"
           >
-            <div className="relative flex items-center justify-between overflow-hidden bg-ink-950 p-4 text-white">
-              <div className="absolute inset-x-0 top-0 h-32 bg-radial-fade" />
+            <div className="relative flex items-center justify-between overflow-hidden border-b border-border bg-surface-1 p-4">
+              <div className="absolute inset-x-0 -top-16 h-40 bg-radial-fade" />
               <div className="relative flex items-center gap-2.5">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/25">
                   <Bot className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold">AI Concierge</p>
-                  <p className="flex items-center gap-1 text-xs text-white/80">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" /> Online
+                  <p className="text-sm font-semibold tracking-display">AI Concierge</p>
+                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <LivePulse className="scale-[0.8]" /> Online
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="relative rounded-lg p-1.5 text-white/80 transition hover:bg-white/15 hover:text-white"
+                className="rounded-xl p-1.5 text-muted-foreground transition hover:bg-surface-3 hover:text-foreground"
                 aria-label="Close assistant"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+            <div
+              ref={scrollRef}
+              className="flex-1 space-y-3 overflow-y-auto p-4"
+              aria-live="polite"
+            >
               {messages.map((msg, i) => (
                 <div
                   key={i}
                   className={cn('flex items-end gap-2', msg.sender === 'user' ? 'justify-end' : 'justify-start')}
                 >
                   {msg.sender === 'ai' && (
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
                       <Bot className="h-4 w-4" />
                     </span>
                   )}
                   <div
                     className={cn(
-                      'max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm',
+                      'max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm shadow-surface',
                       msg.sender === 'user'
                         ? 'rounded-br-sm bg-primary text-primary-foreground'
-                        : 'rounded-bl-sm bg-muted text-foreground',
+                        : 'rounded-bl-sm bg-surface-1 border border-border text-foreground',
                     )}
                   >
                     {msg.text}
@@ -117,7 +124,7 @@ export function AIChatWidget() {
                     <button
                       key={s}
                       onClick={() => send(s)}
-                      className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-left text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
+                      className="block w-full rounded-xl border border-border bg-surface-1 px-3 py-2 text-left text-xs text-muted-foreground transition hover:border-primary/40 hover:text-foreground"
                     >
                       {s}
                     </button>
@@ -127,11 +134,11 @@ export function AIChatWidget() {
 
               {loading && (
                 <div className="flex items-center gap-2 pl-9">
-                  <span className="flex gap-1">
+                  <span className="flex gap-1.5" aria-label="Assistant is typing">
                     {[0, 1, 2].map((d) => (
                       <span
                         key={d}
-                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+                        className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary"
                         style={{ animationDelay: `${d * 0.15}s` }}
                       />
                     ))}
@@ -145,18 +152,19 @@ export function AIChatWidget() {
                 e.preventDefault();
                 send();
               }}
-              className="flex items-center gap-2 border-t border-border p-3"
+              className="flex items-center gap-2 border-t border-border bg-surface-1 p-3"
             >
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask about events, sessions…"
-                className="h-10 flex-1 rounded-xl border border-input bg-card px-3.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-ring/40"
+                aria-label="Message the concierge"
+                className="h-10 flex-1 rounded-xl border border-border bg-inset px-3.5 text-sm text-foreground outline-none transition placeholder:text-faint focus:border-primary/60 focus:ring-2 focus:ring-ring/30"
               />
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-surface transition hover:shadow-glow disabled:opacity-50"
                 aria-label="Send message"
               >
                 <Send className="h-4 w-4" />
@@ -172,7 +180,7 @@ export function AIChatWidget() {
             onClick={() => setOpen(true)}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="group relative flex items-center gap-2 rounded-full bg-primary p-3.5 text-white shadow-surface"
+            className="relative flex items-center gap-2 rounded-full bg-primary p-3.5 text-primary-foreground shadow-glow"
             aria-label="Open AI concierge"
           >
             <Bot className="h-6 w-6" />

@@ -7,6 +7,7 @@ import { CommandPalette } from './CommandPalette';
 import { ProtectedRoute } from './ProtectedRoute';
 import { AIChatWidget } from './AIChatWidget';
 import { ScrollToTopButton } from './ScrollToTopButton';
+import { ErrorBoundary } from './ErrorBoundary';
 import Home from '../pages/Home';
 import EventDetail from '../pages/EventDetail';
 import MyTickets from '../pages/MyTickets';
@@ -23,13 +24,18 @@ import NotFound from '../pages/NotFound';
 function PageTransition({ children }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
   );
+}
+
+function RouteErrorBoundary({ children }) {
+  const location = useLocation();
+  return <ErrorBoundary resetKey={location.key}>{children}</ErrorBoundary>;
 }
 
 export function AppShell() {
@@ -37,7 +43,7 @@ export function AppShell() {
   const [commandOpen, setCommandOpen] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [location.pathname]);
 
   useEffect(() => {
@@ -52,51 +58,139 @@ export function AppShell() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="relative flex min-h-screen flex-col bg-canvas text-foreground">
       <Navbar onOpenCommand={() => setCommandOpen(true)} />
       <main id="main-content" className="flex-1">
         <Routes>
-          <Route path="/" element={<PageTransition><Home /></PageTransition>} />
-            <Route path="/events/:id" element={<PageTransition><EventDetail /></PageTransition>} />
-            <Route path="/agenda" element={<PageTransition><EventAgenda /></PageTransition>} />
-            <Route
-              path="/tickets"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><MyTickets /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/scanner"
-              element={
-                <ProtectedRoute>
-                  <PageTransition><GateScanner /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute roles={['Organizer', 'Admin']}>
-                  <PageTransition><OrganizerDashboard /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/leads"
-              element={
-                <ProtectedRoute roles={['Exhibitor', 'Organizer', 'Admin']}>
-                  <PageTransition><ExhibitorLeads /></PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
-            <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
-            <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
-            <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
-            <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
-          </Routes>
+          <Route
+            path="/"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <Home />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/events/:id"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <EventDetail />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/agenda"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <EventAgenda />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/tickets"
+            element={
+              <ProtectedRoute>
+                <RouteErrorBoundary>
+                  <PageTransition>
+                    <MyTickets />
+                  </PageTransition>
+                </RouteErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/scanner"
+            element={
+              <ProtectedRoute>
+                <RouteErrorBoundary>
+                  <PageTransition>
+                    <GateScanner />
+                  </PageTransition>
+                </RouteErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute roles={['Organizer', 'Admin']}>
+                <RouteErrorBoundary>
+                  <PageTransition>
+                    <OrganizerDashboard />
+                  </PageTransition>
+                </RouteErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leads"
+            element={
+              <ProtectedRoute roles={['Exhibitor', 'Organizer', 'Admin']}>
+                <RouteErrorBoundary>
+                  <PageTransition>
+                    <ExhibitorLeads />
+                  </PageTransition>
+                </RouteErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <Login />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <Register />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <Terms />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <Privacy />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <RouteErrorBoundary>
+                <PageTransition>
+                  <NotFound />
+                </PageTransition>
+              </RouteErrorBoundary>
+            }
+          />
+        </Routes>
       </main>
       <Footer />
       <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />

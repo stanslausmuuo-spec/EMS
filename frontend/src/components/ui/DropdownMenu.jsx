@@ -10,7 +10,7 @@ export const DropdownMenuSub = DropdownMenuPrimitive.Sub;
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
 
 const contentClasses =
-  'z-50 min-w-[12rem] overflow-hidden rounded-xl border border-border bg-card p-1.5 text-card-foreground shadow-overlay data-[state=open]:animate-scale-in';
+  'z-50 min-w-[12rem] overflow-hidden rounded-2xl border border-border-strong bg-surface-2 p-1.5 text-foreground shadow-overlay data-[state=open]:animate-scale-in';
 
 export function DropdownMenuContent({ className, sideOffset = 8, ...props }) {
   return (
@@ -28,7 +28,7 @@ export function DropdownMenuItem({ className, inset, ...props }) {
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        'relative flex cursor-pointer select-none items-center gap-2 rounded-lg px-3 py-2 text-sm outline-none transition-colors focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        'relative flex cursor-pointer select-none items-center gap-2 rounded-xl px-3 py-2 text-sm outline-none transition-colors focus:bg-surface-3 data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         inset && 'pl-9',
         className,
       )}
@@ -57,7 +57,7 @@ export function DropdownMenuCheckboxItem({ className, children, checked, ...prop
     <DropdownMenuPrimitive.CheckboxItem
       checked={checked}
       className={cn(
-        'relative flex cursor-pointer select-none items-center rounded-lg py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:bg-muted',
+        'relative flex cursor-pointer select-none items-center rounded-xl py-2 pl-9 pr-3 text-sm outline-none transition-colors focus:bg-surface-3',
         className,
       )}
       {...props}
@@ -76,7 +76,7 @@ export function DropdownMenuSubTrigger({ className, children, ...props }) {
   return (
     <DropdownMenuPrimitive.SubTrigger
       className={cn(
-        'flex cursor-pointer select-none items-center rounded-lg px-3 py-2 text-sm outline-none focus:bg-muted data-[state=open]:bg-muted',
+        'flex cursor-pointer select-none items-center rounded-xl px-3 py-2 text-sm outline-none focus:bg-surface-3 data-[state=open]:bg-surface-3',
         className,
       )}
       {...props}

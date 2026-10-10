@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
 import {
   CalendarDays,
   Download,
   PlusCircle,
-  Radio,
   Ticket,
   TrendingUp,
   Users,
@@ -18,6 +16,8 @@ import { Input, Select, Textarea, Field } from '../components/ui/Input';
 import { Progress } from '../components/ui/Progress';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Stat } from '../components/ui/Stat';
+import { LiveBadge } from '../components/ui/LivePulse';
 import {
   Dialog,
   DialogContent,
@@ -28,34 +28,6 @@ import {
 } from '../components/ui/Dialog';
 
 const CATEGORIES = ['Tech', 'Music', 'Business', 'Workshop'];
-
-function StatCard({ label, value, sub, icon: Icon, accent, delay = 0 }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.35 }}
-      className="rounded-2xl border border-border bg-card p-5 shadow-surface"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${accent}`}>
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-      <motion.span
-        key={String(value)}
-        initial={{ opacity: 0.5, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25 }}
-        className="inline-block"
-      >
-        <div className="mt-3 font-display text-3xl font-semibold tabular-nums">{value}</div>
-      </motion.span>
-      {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
-    </motion.div>
-  );
-}
 
 export default function OrganizerDashboard() {
   const toast = useToast();
@@ -171,28 +143,25 @@ export default function OrganizerDashboard() {
     }
   };
 
+  const soldPct = stats?.soldTickets
+    ? Math.round((stats.soldTickets / (stats.capacity || 1)) * 100)
+    : 0;
   const attendanceRate = stats?.soldTickets
     ? Math.round((stats.checkedInCount / stats.soldTickets) * 100)
     : 0;
 
   return (
     <div className="container py-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Organizer Dashboard</h1>
+          <p className="eyebrow !text-primary">
+            <CalendarDays className="h-3.5 w-3.5" /> Control room
+          </p>
+          <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">Organizer Dashboard</h1>
           <p className="mt-1 text-muted-foreground">Monitor live attendance and manage your events.</p>
         </div>
         <div className="flex items-center gap-2">
-          <span
-            className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold ${
-              live
-                ? 'border-success/30 bg-success/10 text-success'
-                : 'border-border bg-muted text-muted-foreground'
-            }`}
-          >
-            <Radio className={`h-3.5 w-3.5 ${live ? 'animate-pulse' : ''}`} />
-            {live ? 'Live' : 'Connecting…'}
-          </span>
+          <LiveBadge active={live} label={live ? 'Live' : 'Connecting…'} />
           <Button onClick={() => setDialogOpen(true)}>
             <PlusCircle className="h-4 w-4" /> Create event
           </Button>
@@ -216,7 +185,7 @@ export default function OrganizerDashboard() {
         </div>
       ) : (
         <>
-          <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-surface sm:flex-row sm:items-end sm:justify-between">
+          <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-border-strong bg-surface-1 p-5 shadow-surface sm:flex-row sm:items-end sm:justify-between">
             <Field label="Monitoring event" className="w-full sm:max-w-md">
               <Select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
                 {events.map((ev) => (
@@ -236,28 +205,32 @@ export default function OrganizerDashboard() {
               Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)
             ) : (
               <>
-                <StatCard label="Capacity" value={stats.capacity} icon={Users} accent="bg-primary/10 text-primary" sub="Total seats" />
-                <StatCard label="Tickets sold" value={stats.soldTickets} icon={Ticket} accent="bg-accent/10 text-accent" sub={`${Math.round(((stats.soldTickets || 0) / (stats.capacity || 1)) * 100)}% of capacity`} delay={0.05} />
-                <StatCard label="Checked-in" value={stats.checkedInCount} icon={TrendingUp} accent="bg-success/10 text-success" sub="Live via websocket" delay={0.1} />
-                <StatCard label="Attendance rate" value={`${attendanceRate}%`} icon={CalendarDays} accent="bg-warning/10 text-warning" sub="Checked-in / sold" delay={0.15} />
+                <Stat label="Capacity" value={stats.capacity} icon={Users} accent="bg-primary/10 text-primary" sub="Total seats" />
+                <Stat label="Tickets sold" value={stats.soldTickets} icon={Ticket} accent="bg-accent/10 text-accent" sub={`${soldPct}% of capacity`} delay={0.05} />
+                <Stat label="Checked-in" value={stats.checkedInCount} icon={TrendingUp} accent="bg-success/10 text-success" sub="Live via websocket" delay={0.1} />
+                <Stat label="Attendance rate" value={`${attendanceRate}%`} icon={CalendarDays} accent="bg-warning/10 text-warning" sub="Checked-in / sold" delay={0.15} />
               </>
             )}
           </div>
 
           {stats && (
-            <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-surface">
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold">Gate progress</span>
-                <span className="text-muted-foreground">
+            <div className="relative mt-6 overflow-hidden rounded-3xl border border-border-strong bg-surface-2 p-6 shadow-overlay">
+              <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+              <div className="relative flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="font-display text-lg font-bold tracking-tight">Gate progress</span>
+                  <LiveBadge active label="Tracking" />
+                </div>
+                <span className="text-sm tabular text-muted-foreground">
                   {stats.checkedInCount} of {stats.soldTickets} arrived
                 </span>
               </div>
-              <Progress value={attendanceRate} className="mt-3 h-3" />
-              {selectedEvent && (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {selectedEvent.soldTickets} sold · {Math.max(0, selectedEvent.capacity - selectedEvent.soldTickets)} seats remaining
-                </p>
-              )}
+              <Progress value={attendanceRate} className="mt-4 h-3" />
+              <div className="relative mt-4 grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+                <p>{stats.soldTickets} sold</p>
+                <p>{stats.checkedInCount} checked in</p>
+                <p>{Math.max(0, (selectedEvent?.capacity || 0) - (selectedEvent?.soldTickets || 0))} seats remaining</p>
+              </div>
             </div>
           )}
         </>

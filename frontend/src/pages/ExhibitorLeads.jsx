@@ -4,9 +4,10 @@ import { api } from '../lib/api';
 import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { Input, Select, Textarea, Field } from '../components/ui/Input';
+import { Input, Select, Field } from '../components/ui/Input';
 import { Skeleton } from '../components/ui/Skeleton';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Stat } from '../components/ui/Stat';
 import { downloadBlob, formatDateTime } from '../lib/utils';
 
 const SCORES = ['Hot', 'Warm', 'Cold'];
@@ -103,9 +104,12 @@ export default function ExhibitorLeads() {
 
   return (
     <div className="container py-10">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Lead Capture CRM</h1>
+          <p className="eyebrow !text-primary">
+            <Radar className="h-3.5 w-3.5" /> Exhibitor
+          </p>
+          <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">Lead Capture CRM</h1>
           <p className="mt-1 text-muted-foreground">Scan, score, and manage your booth leads.</p>
         </div>
         <Button variant="secondary" onClick={exportCSV}>
@@ -114,27 +118,19 @@ export default function ExhibitorLeads() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        {[
-          { label: 'Total leads', value: leads.length, icon: UserPlus, accent: 'text-primary bg-primary/10' },
-          { label: 'Hot leads', value: hot, icon: Target, accent: 'text-danger bg-danger/10' },
-          { label: 'Avg. per event', value: events.length ? Math.round(leads.length / events.length) : 0, icon: Radar, accent: 'text-accent bg-accent/10' },
-        ].map((s) => (
-          <div key={s.label} className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 shadow-surface">
-            <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.accent}`}>
-              <s.icon className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-sm text-muted-foreground">{s.label}</p>
-              <p className="font-display text-2xl font-semibold tabular-nums">{s.value}</p>
-            </div>
-          </div>
-        ))}
+        <Stat label="Total leads" value={leads.length} icon={UserPlus} accent="bg-primary/10 text-primary" />
+        <Stat label="Hot leads" value={hot} icon={Target} accent="bg-danger/10 text-danger" delay={0.05} />
+        <Stat
+          label="Avg. per event"
+          value={events.length ? Math.round(leads.length / events.length) : 0}
+          icon={Radar}
+          accent="bg-accent/10 text-accent"
+          delay={0.1}
+        />
       </div>
 
-      <form onSubmit={capture} className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-surface">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Capture a lead
-        </h2>
+      <form onSubmit={capture} className="mt-8 rounded-3xl border border-border-strong bg-surface-1 p-6 shadow-surface">
+        <span className="eyebrow">Capture a lead</span>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Field label="Event">
             <Select value={form.eventId} onChange={(e) => setForm({ ...form, eventId: e.target.value })}>
@@ -176,9 +172,11 @@ export default function ExhibitorLeads() {
         </div>
       </form>
 
-      <div className="mt-8 rounded-2xl border border-border bg-card shadow-surface">
+      <div className="mt-8 overflow-hidden rounded-3xl border border-border bg-surface-2 shadow-surface">
         <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
-          <span className="font-semibold">Captured leads ({filtered.length})</span>
+          <span className="font-display text-lg font-bold tracking-tight">
+            Captured leads <span className="text-muted-foreground">({filtered.length})</span>
+          </span>
           <div className="relative w-full sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -208,7 +206,7 @@ export default function ExhibitorLeads() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs uppercase tracking-wider text-muted-foreground">
+                <tr className="border-b border-border text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
                   <th className="p-4 font-semibold">Attendee</th>
                   <th className="p-4 font-semibold">Event</th>
                   <th className="p-4 font-semibold">Score</th>
@@ -218,7 +216,7 @@ export default function ExhibitorLeads() {
               </thead>
               <tbody className="divide-y divide-border">
                 {filtered.map((lead) => (
-                  <tr key={lead._id} className="transition hover:bg-muted/40">
+                  <tr key={lead._id} className="transition hover:bg-surface-1/60">
                     <td className="p-4">
                       <p className="font-semibold">{lead.attendee?.name || 'Unknown'}</p>
                       <p className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -233,16 +231,18 @@ export default function ExhibitorLeads() {
                       <input
                         type="text"
                         defaultValue={lead.notes || ''}
+                        aria-label={`Notes for ${lead.attendee?.name || 'lead'}`}
                         onBlur={(e) => {
                           if (e.target.value !== (lead.notes || '')) update(lead._id, { notes: e.target.value });
                         }}
                         placeholder="Add notes…"
-                        className="w-full rounded-lg border border-border bg-transparent px-2 py-1 text-xs focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                        className="w-full rounded-lg border border-border bg-inset px-2 py-1 text-xs text-foreground placeholder:text-faint focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
                       />
                     </td>
                     <td className="p-4">
                       <Select
                         value={lead.score}
+                        aria-label={`Score for ${lead.attendee?.name || 'lead'}`}
                         onChange={(e) => update(lead._id, { score: e.target.value })}
                         className="h-8 px-2 py-0 text-xs"
                       >

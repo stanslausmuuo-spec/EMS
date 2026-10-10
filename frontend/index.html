@@ -10,7 +10,7 @@
       content="Event management in the browser: discover events, book tickets, and check in guests with offline-first QR scanning and zero overbooking."
     />
     <meta name="keywords" content="event management, ticketing, conference, offline scanner, QR tickets, EMS" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="color-scheme" content="dark" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
@@ -33,23 +33,12 @@
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#080B14" />
+    <meta name="theme-color" content="#0A0A0B" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="EMS" />
-
-    <script>
-      (function () {
-        try {
-          var stored = localStorage.getItem('ems_theme');
-          var theme = stored === 'light' ? 'light' : 'dark';
-          document.documentElement.classList.toggle('dark', theme === 'dark');
-          document.documentElement.style.colorScheme = theme;
-        } catch (e) {}
-      })();
-    </script>
   </head>
-  <body class="bg-background font-sans text-foreground antialiased">
+  <body class="bg-canvas font-sans text-foreground antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

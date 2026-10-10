@@ -54,46 +54,67 @@ export default function Login() {
 
   return (
     <div className="container py-10 lg:py-16">
-      <div className="grid items-stretch gap-10 lg:grid-cols-2">
+      <div className="grid items-stretch gap-8 lg:grid-cols-2">
         {/* Brand panel */}
-        <div className="relative hidden overflow-hidden rounded-3xl bg-ink-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
-          <div className="absolute inset-0 bg-radial-fade" />
-          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-ink-950 to-transparent" />
+        <div className="relative hidden overflow-hidden rounded-3xl border border-border-strong bg-canvas p-10 shadow-overlay lg:flex lg:flex-col lg:justify-between">
+          <div className="absolute inset-0 bg-mesh" />
+          <div className="absolute inset-0 surface-grid opacity-50" />
+          <div aria-hidden="true" className="grain absolute inset-0" />
+          <div className="absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-canvas to-transparent" />
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-16 -left-6 select-none font-display text-[16rem] font-bold leading-none tracking-tighter text-primary/[0.06]"
+          >
+            01
+          </span>
+
           <div className="relative">
-            <Logo className="text-white" />
-            <h2 className="mt-10 font-display text-4xl font-semibold leading-tight">
+            <Logo />
+            <p className="eyebrow mt-10 !text-primary">
+              <Sparkles className="h-3.5 w-3.5" /> The event OS after dark
+            </p>
+            <h2 className="mt-4 font-display text-[clamp(2rem,3vw,2.75rem)] font-bold leading-[1.08] tracking-tight">
               The event platform your attendees will love.
             </h2>
-            <p className="mt-4 max-w-md text-white/70">
+            <p className="mt-4 max-w-md text-muted-foreground">
               Discover, book, and check in — all from one beautifully fast experience.
             </p>
           </div>
-          <ul className="relative mt-10 space-y-4">
+
+          <ul className="relative mt-10 divide-y divide-border border-y border-border">
             {HIGHLIGHTS.map((h) => (
-              <li key={h.text} className="flex items-center gap-3 text-sm text-white/80">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10">
+              <li key={h.text} className="flex items-center gap-4 py-4 text-sm text-muted-foreground">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-border-strong bg-surface-2 text-primary">
                   <h.icon className="h-4 w-4" />
                 </span>
                 {h.text}
               </li>
             ))}
           </ul>
+
+          <div className="relative mt-8 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-faint">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" />
+            Zero overbooking · Offline gate · Live dashboards
+          </div>
         </div>
 
         {/* Form */}
         <div className="mx-auto flex w-full max-w-md flex-col justify-center">
-          <div className="rounded-3xl border border-border bg-card p-8 shadow-surface">
+          <div className="rounded-3xl border border-border-strong bg-surface-2 p-8 shadow-overlay">
             <div className="lg:hidden">
               <Logo />
             </div>
-            <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight lg:mt-0">
+            <p className="eyebrow mt-6 !text-primary lg:mt-0">
+              <Lock className="h-3.5 w-3.5" /> Secure sign-in
+            </p>
+            <h1 className="mt-3 font-display text-3xl font-bold tracking-tight">
               Welcome back
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Sign in to access your tickets and dashboard.
             </p>
 
-            <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+            <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/[0.07] p-4">
               <p className="flex items-center gap-2 text-sm font-semibold text-primary">
                 <Sparkles className="h-4 w-4" /> One-click demo access
               </p>

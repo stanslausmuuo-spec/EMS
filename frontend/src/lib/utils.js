@@ -25,23 +25,60 @@ export function formatDateTime(date) {
   return `${formatDate(date)} · ${formatTime(date)}`;
 }
 
-const COVER_GRADIENTS = [
-  'from-[#161e38] to-[#0d1226]',
-  'from-[#211539] to-[#120a22]',
-  'from-[#0f2630] to-[#0a161c]',
-  'from-[#2b1a12] to-[#160c08]',
-  'from-[#1c2830] to-[#0d141a]',
-  'from-[#251b2e] to-[#110d18]',
-];
+const CATEGORY_CATALOG = {
+  Tech: {
+    gradient: 'from-[#10141f] via-[#16251c] to-[#0a0f0c]',
+    accent: 'text-primary',
+    glow: 'rgb(var(--primary) / 0.28)',
+  },
+  Music: {
+    gradient: 'from-[#1d1018] via-[#291520] to-[#0f0a12]',
+    accent: 'text-[#ff7a46]',
+    glow: 'rgb(255 122 70 / 0.22)',
+  },
+  Business: {
+    gradient: 'from-[#1b1507] via-[#231c0c] to-[#0c0a05]',
+    accent: 'text-[#f5b544]',
+    glow: 'rgb(245 181 68 / 0.2)',
+  },
+  Workshop: {
+    gradient: 'from-[#0b1620] via-[#0e1f2b] to-[#070f14]',
+    accent: 'text-[#5ec8f5]',
+    glow: 'rgb(94 200 245 / 0.2)',
+  },
+};
 
-export function coverGradient(seed = '') {
-  const key = String(seed);
+const DEFAULT_COVER = CATEGORY_CATALOG.Tech;
+
+export function coverStyle(event) {
+  return CATEGORY_CATALOG[event?.category] || DEFAULT_COVER;
+}
+
+export function coverGradient(seed) {
+  if (typeof seed === 'object' && seed !== null) return coverStyle(seed).gradient;
+  return DEFAULT_COVER.gradient;
+}
+
+export function coverAccent(event) {
+  return coverStyle(event).accent;
+}
+
+export function coverGlow(event) {
+  return coverStyle(event).glow;
+}
+
+function hashOf(seed = '') {
   let hash = 0;
+  const key = String(seed);
   for (let i = 0; i < key.length; i += 1) {
     hash = (hash << 5) - hash + key.charCodeAt(i);
     hash |= 0;
   }
-  return COVER_GRADIENTS[Math.abs(hash) % COVER_GRADIENTS.length];
+  return Math.abs(hash);
+}
+
+export function coverNumeral(seed = '') {
+  return String((hashOf(seed) % 898) + 101);
 }
 
 export function initials(name = '') {

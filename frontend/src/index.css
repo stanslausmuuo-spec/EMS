@@ -3,48 +3,48 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --background: 250 249 246;
-    --foreground: 24 26 32;
-    --card: 255 255 255;
-    --card-foreground: 24 26 32;
-    --muted: 243 241 237;
-    --muted-foreground: 91 93 107;
-    --border: 228 225 218;
-    --input: 130 138 155;
-    --ring: 79 70 229;
-    --primary: 79 70 229;
-    --primary-foreground: 255 255 255;
-    --accent: 14 165 233;
-    --accent-foreground: 8 47 73;
-    --success: 16 185 129;
-    --success-foreground: 6 78 59;
-    --warning: 245 158 11;
-    --warning-foreground: 107 46 11;
-    --danger: 220 38 38;
-    --danger-foreground: 255 255 255;
-  }
-
+  :root,
   .dark {
-    --background: 8 11 20;
-    --foreground: 226 232 240;
-    --card: 22 28 46;
-    --card-foreground: 226 232 240;
-    --muted: 30 38 58;
-    --muted-foreground: 148 163 184;
-    --border: 39 51 71;
-    --input: 100 110 130;
-    --ring: 129 140 248;
-    --primary: 79 70 229;
-    --primary-foreground: 255 255 255;
-    --accent: 56 189 248;
-    --accent-foreground: 8 47 73;
-    --success: 52 211 153;
-    --success-foreground: 6 78 59;
-    --warning: 251 191 36;
-    --warning-foreground: 69 26 3;
-    --danger: 248 113 113;
-    --danger-foreground: 69 10 10;
+    color-scheme: dark;
+
+    --canvas: 10 10 11;
+    --background: 10 10 11;
+    --foreground: 244 241 234;
+
+    --surface-1: 18 18 21;
+    --surface-2: 25 25 31;
+    --surface-3: 33 33 41;
+    --inset: 12 12 14;
+
+    --card: 18 18 21;
+    --card-foreground: 244 241 234;
+
+    --muted: 25 25 31;
+    --muted-foreground: 168 162 152;
+    --faint: 108 103 93;
+
+    --border: 34 34 41;
+    --border-strong: 58 58 68;
+    --input: 84 82 78;
+
+    --ring: 198 242 78;
+    --primary: 198 242 78;
+    --primary-foreground: 12 14 10;
+
+    --accent: 94 200 245;
+    --accent-foreground: 6 22 30;
+
+    --hot: 255 122 70;
+    --hot-foreground: 26 8 2;
+
+    --success: 198 242 78;
+    --success-foreground: 12 14 10;
+
+    --warning: 245 181 68;
+    --warning-foreground: 28 18 2;
+
+    --danger: 255 90 71;
+    --danger-foreground: 22 5 3;
   }
 
   * {
@@ -54,21 +54,23 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    background-color: rgb(var(--canvas));
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    @apply bg-canvas font-sans text-foreground antialiased;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background-color: rgb(var(--primary) / 0.25);
+    background-color: rgb(var(--primary) / 0.3);
+    color: rgb(var(--foreground));
   }
 
   h1,
   h2,
-  h3 {
+  h3,
+  h4 {
     text-wrap: balance;
   }
 
@@ -98,12 +100,12 @@
 
 @layer components {
   .glass {
-    @apply bg-card/60 backdrop-blur-md border border-border/80;
+    @apply bg-surface-1/70 backdrop-blur-xl border border-border/80;
   }
 
   @supports not (backdrop-filter: blur(1px)) {
     .glass {
-      @apply bg-card;
+      @apply bg-surface-1;
     }
   }
 
@@ -120,7 +122,7 @@
   }
 
   .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/40;
+    @apply transition-all duration-300 hover:-translate-y-1 hover:border-border-strong hover:shadow-elevate;
   }
 
   .shimmer {
@@ -128,8 +130,49 @@
   }
   .shimmer::after {
     content: '';
-    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-black/5 to-transparent dark:via-white/10;
+    @apply absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/5 to-transparent;
     animation: shimmer 1.6s infinite;
+  }
+
+  /* Procedural grain — the signature texture */
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='128' height='128'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px 128px;
+    opacity: 0.08;
+    mix-blend-mode: overlay;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground;
+  }
+
+  .ticket-notch {
+    position: relative;
+  }
+  .ticket-notch::before,
+  .ticket-notch::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: rgb(var(--canvas));
+    transform: translateY(-50%);
+  }
+  .ticket-notch::before {
+    left: -0.75rem;
+  }
+  .ticket-notch::after {
+    right: -0.75rem;
   }
 }
 
@@ -143,6 +186,9 @@
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
   }
 }
 

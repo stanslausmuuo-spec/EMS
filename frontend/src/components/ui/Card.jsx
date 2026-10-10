@@ -1,25 +1,49 @@
 import React from 'react';
 import { cn } from '../../lib/utils';
 
-export function Card({ className, ...props }) {
+const TIERS = {
+  1: 'bg-surface-1 border-border',
+  2: 'bg-surface-2 border-border',
+  3: 'bg-surface-3 border-border-strong',
+  inset: 'bg-inset border-border',
+};
+
+export const Surface = React.forwardRef(function Surface(
+  { className, tier = 1, hairline = true, raised = false, as: Comp = 'div', ...props },
+  ref,
+) {
   return (
-    <div
+    <Comp
+      ref={ref}
       className={cn(
-        'rounded-2xl border border-border bg-card text-card-foreground shadow-surface',
+        'rounded-2xl border',
+        TIERS[tier] || TIERS[1],
+        raised ? 'shadow-elevate' : 'shadow-surface',
+        hairline && 'bg-clip-padding',
         className,
       )}
+      {...props}
+    />
+  );
+});
+
+export function Card({ className, ...props }) {
+  return (
+    <Surface
+      tier={1}
+      className={cn('text-card-foreground', className)}
       {...props}
     />
   );
 }
 
 export function CardHeader({ className, ...props }) {
-  return <div className={cn('flex flex-col gap-1 p-5 sm:p-6', className)} {...props} />;
+  return <div className={cn('flex flex-col gap-1.5 p-5 sm:p-6', className)} {...props} />;
 }
 
 export function CardTitle({ className, ...props }) {
   return (
-    <h3 className={cn('font-display text-lg font-semibold tracking-tight', className)} {...props} />
+    <h3 className={cn('font-display text-lg font-semibold tracking-display', className)} {...props} />
   );
 }
 

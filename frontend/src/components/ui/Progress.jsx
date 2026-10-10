@@ -5,7 +5,7 @@ export function Progress({ value = 0, className, indicatorClassName }) {
   const clamped = Math.max(0, Math.min(100, value));
   return (
     <div
-      className={cn('h-2 w-full overflow-hidden rounded-full bg-muted', className)}
+      className={cn('h-2 w-full overflow-hidden rounded-full bg-inset', className)}
       role="progressbar"
       aria-valuenow={clamped}
       aria-valuemin={0}

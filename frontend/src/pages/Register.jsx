@@ -42,11 +42,16 @@ export default function Register() {
   };
 
   return (
-    <div className="container py-10 lg:py-16">
-      <div className="mx-auto w-full max-w-md">
-        <div className="rounded-3xl border border-border bg-card p-8 shadow-surface">
+    <div className="relative overflow-hidden py-10 lg:py-16">
+      <div className="absolute inset-0 bg-mesh opacity-60" />
+      <div className="absolute inset-0 surface-grid opacity-40" />
+      <div aria-hidden="true" className="grain absolute inset-0" />
+
+      <div className="container relative mx-auto w-full max-w-md">
+        <div className="rounded-3xl border border-border-strong bg-surface-2 p-8 shadow-overlay">
           <Logo />
-          <h1 className="mt-6 font-display text-2xl font-semibold tracking-tight">
+          <p className="eyebrow mt-8 !text-primary">Join the platform</p>
+          <h1 className="mt-3 font-display text-3xl font-bold tracking-tight">
             Create your account
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -93,19 +98,20 @@ export default function Register() {
               </div>
             </Field>
 
-            <div className="space-y-1.5">
-              <span className="text-sm font-medium text-foreground">I am joining as</span>
+            <div className="space-y-2">
+              <span className="eyebrow">I am joining as</span>
               <div className="grid grid-cols-2 gap-3">
                 {ROLES.map((r) => (
                   <button
                     key={r.value}
                     type="button"
+                    aria-pressed={form.role === r.value}
                     onClick={() => setForm({ ...form, role: r.value })}
                     className={cn(
-                      'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition',
+                      'flex flex-col items-start gap-1.5 rounded-2xl border p-3.5 text-left transition-all duration-200',
                       form.role === r.value
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary/40'
-                        : 'border-border bg-card hover:border-primary/40',
+                        ? 'border-primary bg-primary/[0.08] shadow-glow-soft'
+                        : 'border-border bg-surface-1 hover:border-border-strong',
                     )}
                   >
                     <r.icon

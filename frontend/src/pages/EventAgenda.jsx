@@ -80,8 +80,11 @@ export default function EventAgenda() {
     <div className="container py-10">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Event Agenda</h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="eyebrow !text-primary">
+            <CalendarDays className="h-3.5 w-3.5" /> Program
+          </p>
+          <h1 className="mt-2 font-display text-4xl font-bold tracking-tight">Event Agenda</h1>
+          <p className="mt-1 max-w-xl text-muted-foreground">
             Explore sessions, breakout rooms, and build your personal schedule.
           </p>
         </div>
@@ -108,7 +111,7 @@ export default function EventAgenda() {
                 'rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
                 track === t
                   ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground',
+                  : 'border-border bg-surface-2 text-muted-foreground hover:border-primary/40 hover:text-foreground',
               )}
             >
               {t}
@@ -138,31 +141,31 @@ export default function EventAgenda() {
             return (
               <li
                 key={s._id}
-                className="group flex flex-col gap-4 rounded-2xl border border-border bg-card p-5 shadow-surface transition hover:border-primary/30 md:flex-row md:items-center"
+                className="card-hover group flex flex-col gap-4 rounded-3xl border border-border bg-surface-2 p-5 shadow-surface sm:flex-row sm:items-center md:p-6"
               >
-                <div className="flex w-full shrink-0 flex-col gap-1 border-border md:w-28 md:border-r md:pr-4">
-                  <span className="font-display text-lg font-semibold text-primary">
-                    {formatTime(s.startTime)}
+                <div className="flex w-full shrink-0 flex-col gap-1 border-border sm:w-36 sm:border-r sm:pr-5">
+                  <span className="inline-flex items-center gap-2 font-display text-lg font-bold tabular text-primary">
+                    <Clock className="h-4 w-4" /> {formatTime(s.startTime)}
                   </span>
-                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" /> {formatTime(s.endTime)}
+                  <span className="text-xs text-muted-foreground">
+                    until {formatTime(s.endTime)}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="primary">{s.track}</Badge>
+                    <Badge variant="accent">{s.track}</Badge>
                   </div>
-                  <h3 className="mt-2 font-display text-lg font-semibold">{s.title}</h3>
+                  <h3 className="mt-2 font-display text-lg font-bold tracking-tight">{s.title}</h3>
                   {s.description && (
                     <p className="mt-1 text-sm text-muted-foreground">{s.description}</p>
                   )}
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5">
-                      <Mic2 className="h-3.5 w-3.5 text-accent" /> {s.speaker || 'Keynote speaker'}
+                      <Mic2 className="h-3.5 w-3.5 text-hot" /> {s.speaker || 'Keynote speaker'}
                     </span>
                     {s.room && (
                       <span className="flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-success" /> {s.room}
+                        <MapPin className="h-3.5 w-3.5 text-primary" /> {s.room}
                       </span>
                     )}
                   </div>
