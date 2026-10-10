@@ -1,6 +1,7 @@
 const Ticket = require('../models/Ticket');
 const Event = require('../models/Event');
 const User = require('../models/User');
+const { safeEmit } = require('../services/webhookService');
 
 const resolveRef = async (value, Model) => {
   if (!value) return null;
@@ -8,7 +9,7 @@ const resolveRef = async (value, Model) => {
   return Model.findById(value);
 };
 
-const validateAndCheckIn = async (req, res) => {
+const validateAndCheckIn = async (req, res, next) => {
   try {
     const { qrCodeHash } = req.body;
     if (!qrCodeHash) {
@@ -50,6 +51,14 @@ const validateAndCheckIn = async (req, res) => {
       });
     }
 
+    await safeEmit('checkin.completed', {
+      eventId: ticket.event._id ? String(ticket.event._id) : String(ticket.event),
+      ticketId: String(ticket._id),
+      attendeeId: ticket.attendee._id ? String(ticket.attendee._id) : String(ticket.attendee),
+      attendeeName: ticket.attendee.name,
+      checkedInAt: ticket.checkedInAt,
+    });
+
     res.json({
       success: true,
       message: 'Check-in successful!',
@@ -57,11 +66,11 @@ const validateAndCheckIn = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getEventCheckInStats = async (req, res) => {
+const getEventCheckInStats = async (req, res, next) => {
   try {
     const eventId = req.params.eventId;
     const event = await Event.findById(eventId);
@@ -84,11 +93,11 @@ const getEventCheckInStats = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getEventAttendeesCSV = async (req, res) => {
+const getEventAttendeesCSV = async (req, res, next) => {
   try {
     const eventId = req.params.eventId;
     const event = await Event.findById(eventId);
@@ -107,7 +116,7 @@ const getEventAttendeesCSV = async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=attendees-${eventId}.csv`);
     res.status(200).send(csv);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

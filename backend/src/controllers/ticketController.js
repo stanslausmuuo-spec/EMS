@@ -4,6 +4,7 @@ const User = require('../models/User');
 const redis = require('../config/redis');
 const { ticketQueue } = require('../queues/ticketQueue');
 const crypto = require('crypto');
+const { safeEmit } = require('../services/webhookService');
 
 const isPopulated = (value) => value && typeof value === 'object';
 
@@ -43,7 +44,7 @@ const hydrateTickets = async (tickets) => {
   return tickets;
 };
 
-const registerForEvent = async (req, res) => {
+const registerForEvent = async (req, res, next) => {
   const eventId = req.params.eventId;
   const userId = req.user._id;
   const lockKey = `lock:event:${eventId}`;
@@ -114,6 +115,15 @@ const registerForEvent = async (req, res) => {
       }
     }
 
+    await safeEmit('registration.created', {
+      eventId: String(updatedEvent._id),
+      eventTitle: updatedEvent.title,
+      ticketId: String(ticket._id),
+      attendeeId: String(req.user._id),
+      attendeeName: req.user.name,
+      attendeeEmail: req.user.email,
+    });
+
     res.status(201).json({
       success: true,
       message: 'Successfully registered for event! Ticket is generated.',
@@ -121,7 +131,7 @@ const registerForEvent = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   } finally {
     // Release Redis Lock safely using Lua script or token match check
     if (redisReady) {
@@ -137,7 +147,7 @@ const registerForEvent = async (req, res) => {
   }
 };
 
-const getMyTickets = async (req, res) => {
+const getMyTickets = async (req, res, next) => {
   try {
     const tickets = await Ticket.find({ attendee: req.user._id })
       .populate({
@@ -150,11 +160,11 @@ const getMyTickets = async (req, res) => {
 
     res.json({ success: true, count: tickets.length, data: tickets });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getTicketById = async (req, res) => {
+const getTicketById = async (req, res, next) => {
   try {
     const ticket = await Ticket.findById(req.params.id).populate('event attendee', '-password');
     if (!ticket) {
@@ -169,7 +179,7 @@ const getTicketById = async (req, res) => {
 
     res.json({ success: true, data: ticket });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

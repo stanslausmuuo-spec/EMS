@@ -7,6 +7,9 @@ dist/
 build/
 *.local
 
+# Test coverage
+coverage/
+
 # Environment variables & secrets
 .env
 .env.*

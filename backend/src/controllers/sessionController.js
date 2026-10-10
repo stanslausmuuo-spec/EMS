@@ -1,7 +1,7 @@
 const Session = require('../models/Session');
 const Event = require('../models/Event');
 
-const getEventSessions = async (req, res) => {
+const getEventSessions = async (req, res, next) => {
   try {
     const eventId = req.params.eventId;
     const { track } = req.query;
@@ -19,11 +19,11 @@ const getEventSessions = async (req, res) => {
       data: sessions
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const createSession = async (req, res) => {
+const createSession = async (req, res, next) => {
   try {
     const eventId = req.params.eventId;
     const { title, description, track, speaker, room, startTime, endTime, capacity } = req.body;
@@ -49,11 +49,11 @@ const createSession = async (req, res) => {
       data: session
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const registerForSession = async (req, res) => {
+const registerForSession = async (req, res, next) => {
   try {
     const sessionId = req.params.id;
     const userId = req.user._id;
@@ -78,11 +78,11 @@ const registerForSession = async (req, res) => {
       data: session
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const unregisterSession = async (req, res) => {
+const unregisterSession = async (req, res, next) => {
   try {
     const sessionId = req.params.id;
     const userId = req.user._id;
@@ -99,7 +99,7 @@ const unregisterSession = async (req, res) => {
       data: session
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

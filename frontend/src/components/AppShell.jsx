@@ -12,6 +12,7 @@ import Home from '../pages/Home';
 import EventDetail from '../pages/EventDetail';
 import MyTickets from '../pages/MyTickets';
 import OrganizerDashboard from '../pages/OrganizerDashboard';
+import Webhooks from '../pages/Webhooks';
 import GateScanner from '../pages/GateScanner';
 import ExhibitorLeads from '../pages/ExhibitorLeads';
 import EventAgenda from '../pages/EventAgenda';
@@ -123,6 +124,18 @@ export function AppShell() {
                 <RouteErrorBoundary>
                   <PageTransition>
                     <OrganizerDashboard />
+                  </PageTransition>
+                </RouteErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/webhooks"
+            element={
+              <ProtectedRoute roles={['Organizer', 'Admin']}>
+                <RouteErrorBoundary>
+                  <PageTransition>
+                    <Webhooks />
                   </PageTransition>
                 </RouteErrorBoundary>
               </ProtectedRoute>

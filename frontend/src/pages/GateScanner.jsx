@@ -10,7 +10,7 @@ import {
   ScanLine,
 } from 'lucide-react';
 import { saveOfflineScan, getOfflineScans, clearOfflineScans } from '../utils/indexedDB';
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 import { useToast } from '../components/ui/Toast';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -90,8 +90,11 @@ export default function GateScanner() {
         const res = await api.post('/api/check-in/scan', { qrCodeHash: scan.qrCodeHash });
         if (res?.success) synced += 1;
         else failed += 1;
-      } catch {
-        failed += 1;
+      } catch (err) {
+        // A definitive server answer (duplicate / invalid ticket) reconciles the
+        // queued scan — only true network failures should remain queued.
+        if (err instanceof ApiError && (err.status === 400 || err.status === 404)) synced += 1;
+        else failed += 1;
       }
     }
     if (failed === 0) {
@@ -134,37 +137,41 @@ export default function GateScanner() {
 
     try {
       const data = await api.post('/api/check-in/scan', { qrCodeHash: value });
-      if (data.success) {
-        playTone(true);
-        vibrate(true);
-        setResult({ kind: 'success', data: data.data });
-        pushHistory({
-          code: value,
-          name: data.data?.attendee?.name,
-          event: data.data?.event?.title,
-          status: 'Checked-In',
-          time: new Date().toISOString(),
-        });
-      } else {
-        const already = /already/i.test(data.message || '');
+      playTone(true);
+      vibrate(true);
+      setResult({ kind: 'success', data: data.data });
+      pushHistory({
+        code: value,
+        name: data.data?.attendee?.name,
+        event: data.data?.event?.title,
+        status: 'Checked-In',
+        time: new Date().toISOString(),
+      });
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const already = /already/i.test(err.message || '');
         playTone(false);
         vibrate(false);
-        setResult({ kind: already ? 'duplicate' : 'error', message: data.message, data: data.data });
+        setResult({
+          kind: already ? 'duplicate' : 'error',
+          message: err.message,
+          data: err.raw?.data,
+        });
         pushHistory({
           code: value,
-          name: data.data?.attendee?.name,
-          event: data.data?.event?.title,
+          name: err.raw?.data?.attendee?.name,
+          event: err.raw?.data?.event?.title,
           status: already ? 'Duplicate' : 'Denied',
           time: new Date().toISOString(),
         });
+      } else {
+        await saveOfflineScan({ qrCodeHash: value });
+        await refreshQueue();
+        playTone(true);
+        vibrate(true);
+        setResult({ kind: 'queued', value });
+        pushHistory({ code: value, status: 'Queued offline', time: new Date().toISOString() });
       }
-    } catch {
-      await saveOfflineScan({ qrCodeHash: value });
-      await refreshQueue();
-      playTone(true);
-      vibrate(true);
-      setResult({ kind: 'queued', value });
-      pushHistory({ code: value, status: 'Queued offline', time: new Date().toISOString() });
     } finally {
       setScanning(false);
       inputRef.current?.focus();

@@ -3,17 +3,17 @@ const Question = require('../models/Question');
 const Session = require('../models/Session');
 
 // --- Polls ---
-const getSessionPolls = async (req, res) => {
+const getSessionPolls = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const polls = await Poll.find({ session: sessionId }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: polls.length, data: polls });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const createPoll = async (req, res) => {
+const createPoll = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { question, options } = req.body;
@@ -36,11 +36,11 @@ const createPoll = async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Poll created successfully', data: poll });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const votePoll = async (req, res) => {
+const votePoll = async (req, res, next) => {
   try {
     const { pollId, optionIndex } = req.body;
     const userId = req.user._id;
@@ -69,12 +69,12 @@ const votePoll = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Vote recorded', data: poll });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
 // --- Q&A ---
-const getSessionQuestions = async (req, res) => {
+const getSessionQuestions = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const questions = await Question.find({ session: sessionId })
@@ -82,11 +82,11 @@ const getSessionQuestions = async (req, res) => {
       .sort({ upvotes: -1, createdAt: -1 });
     res.status(200).json({ success: true, count: questions.length, data: questions });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const askQuestion = async (req, res) => {
+const askQuestion = async (req, res, next) => {
   try {
     const { sessionId } = req.params;
     const { text } = req.body;
@@ -111,11 +111,11 @@ const askQuestion = async (req, res) => {
 
     res.status(201).json({ success: true, message: 'Question posted', data: populatedQuestion });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const upvoteQuestion = async (req, res) => {
+const upvoteQuestion = async (req, res, next) => {
   try {
     const { questionId } = req.params;
     const userId = req.user._id;
@@ -140,7 +140,7 @@ const upvoteQuestion = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Question updated', data: populated });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

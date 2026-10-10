@@ -2,7 +2,7 @@ const Event = require('../models/Event');
 const Session = require('../models/Session');
 const Ticket = require('../models/Ticket');
 
-const chatWithAI = async (req, res) => {
+const chatWithAI = async (req, res, next) => {
   try {
     const { prompt, eventId } = req.body;
     if (!prompt) {
@@ -45,7 +45,7 @@ const chatWithAI = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

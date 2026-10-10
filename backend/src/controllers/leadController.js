@@ -2,6 +2,7 @@ const Lead = require('../models/Lead');
 const User = require('../models/User');
 const Event = require('../models/Event');
 const Ticket = require('../models/Ticket');
+const { safeEmit } = require('../services/webhookService');
 
 const isPopulated = (value) => value && typeof value === 'object';
 
@@ -31,7 +32,7 @@ const hydrateLeads = async (leads) => {
   return leads;
 };
 
-const captureLead = async (req, res) => {
+const captureLead = async (req, res, next) => {
   try {
     const { eventId, attendeeId, email, qrCodeHash, score, notes, tags } = req.body;
     const exhibitorId = req.user._id;
@@ -82,6 +83,15 @@ const captureLead = async (req, res) => {
 
     await hydrateLeads(lead);
 
+    await safeEmit('lead.captured', {
+      leadId: String(lead._id),
+      eventId: String(lead.event._id || lead.event),
+      attendeeId: String(lead.attendee._id || lead.attendee),
+      exhibitorId: String(exhibitorId),
+      score: lead.score,
+      tags: lead.tags || [],
+    });
+
     res.status(200).json({
       success: true,
       message: 'Lead captured successfully',
@@ -89,11 +99,11 @@ const captureLead = async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getExhibitorLeads = async (req, res) => {
+const getExhibitorLeads = async (req, res, next) => {
   try {
     const exhibitorId = req.user._id;
     const { eventId, score } = req.query;
@@ -115,11 +125,11 @@ const getExhibitorLeads = async (req, res) => {
       data: leads
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const updateLead = async (req, res) => {
+const updateLead = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { score, notes, tags } = req.body;
@@ -148,11 +158,11 @@ const updateLead = async (req, res) => {
       data: updatedLead
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const exportLeadsCSV = async (req, res) => {
+const exportLeadsCSV = async (req, res, next) => {
   try {
     const exhibitorId = req.user._id;
     const { eventId } = req.query;
@@ -182,7 +192,7 @@ const exportLeadsCSV = async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=exhibitor-leads.csv');
     res.status(200).send(csv);
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

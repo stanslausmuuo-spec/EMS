@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const { z } = require('zod');
+const { safeEmit } = require('../services/webhookService');
 
 const eventSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -10,7 +11,7 @@ const eventSchema = z.object({
   capacity: z.number().min(1, 'Capacity must be at least 1')
 });
 
-const getEvents = async (req, res) => {
+const getEvents = async (req, res, next) => {
   try {
     const { category, location, search, date } = req.query;
     let query = {};
@@ -29,11 +30,11 @@ const getEvents = async (req, res) => {
     const events = await Event.find(query).populate('organizer', 'name email').sort({ date: 1 });
     res.json({ success: true, count: events.length, data: events });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const getEventById = async (req, res) => {
+const getEventById = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id).populate('organizer', 'name email');
     if (!event) {
@@ -41,11 +42,11 @@ const getEventById = async (req, res) => {
     }
     res.json({ success: true, data: event });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const createEvent = async (req, res) => {
+const createEvent = async (req, res, next) => {
   try {
     const validatedData = eventSchema.parse({
       ...req.body,
@@ -58,16 +59,21 @@ const createEvent = async (req, res) => {
       organizer: req.user._id
     });
 
+    await safeEmit('event.created', {
+      eventId: String(event._id),
+      title: event.title,
+      category: event.category,
+      date: event.date,
+      location: event.location,
+    });
+
     res.status(201).json({ success: true, data: event });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, errors: error.errors });
-    }
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const updateEvent = async (req, res) => {
+const updateEvent = async (req, res, next) => {
   try {
     let event = await Event.findById(req.params.id);
     if (!event) {
@@ -81,11 +87,11 @@ const updateEvent = async (req, res) => {
     event = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     res.json({ success: true, data: event });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-const deleteEvent = async (req, res) => {
+const deleteEvent = async (req, res, next) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
@@ -99,7 +105,7 @@ const deleteEvent = async (req, res) => {
     await Event.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'Event removed successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

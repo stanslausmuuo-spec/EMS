@@ -7,6 +7,10 @@ const redis = new Redis(redisUrl, {
   lazyConnect: true,
 });
 
+redis.on('error', (err) => {
+  console.warn('Redis error (running without persistent Redis/BullMQ):', err.message);
+});
+
 redis.connect().catch((err) => {
   console.warn('Redis connection warning (running without persistent Redis/BullMQ):', err.message);
 });

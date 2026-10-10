@@ -44,6 +44,14 @@ function matchQuery(item, query) {
       if (item[key] != null) return false;
       continue;
     }
+    const isOperatorObject =
+      val && typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date) && !(val instanceof RegExp);
+    if (Array.isArray(item[key]) && !isOperatorObject) {
+      const entries = item[key].map((entry) => (entry instanceof Date ? entry.getTime() : String(entry)));
+      const target = val instanceof Date ? val.getTime() : String(val);
+      if (!entries.includes(target)) return false;
+      continue;
+    }
     if (typeof val === 'object' && !Array.isArray(val) && !(val instanceof Date) && !(val instanceof RegExp)) {
       if ('$in' in val) {
         if (!val.$in.map(String).includes(item[key]?.toString())) return false;
@@ -206,6 +214,13 @@ const memoryDb = {
   polls: new MemoryModel('polls'),
   questions: new MemoryModel('questions'),
   webhooks: new MemoryModel('webhooks'),
+  webhookDeliveries: new MemoryModel('webhookDeliveries'),
+};
+
+memoryDb.resetAll = () => {
+  ['users', 'events', 'tickets', 'sessions', 'leads', 'polls', 'questions', 'webhooks', 'webhookDeliveries'].forEach((name) => {
+    memoryDb[name].data.length = 0;
+  });
 };
 
 // Seed initial demo data

@@ -6,7 +6,37 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 0"
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --runInBand --coverage"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.js"
+    ],
+    "moduleNameMapper": {
+      "^ioredis$": "<rootDir>/test/mocks/ioredis.js",
+      "^bullmq$": "<rootDir>/test/mocks/bullmq.js"
+    },
+    "testMatch": [
+      "<rootDir>/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/utils/webhookSignature.js",
+      "src/utils/secretVault.js",
+      "src/utils/urlGuard.js",
+      "src/utils/AppError.js",
+      "src/middleware/errorHandler.js",
+      "src/services/webhookService.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "functions": 60,
+        "branches": 55
+      }
+    }
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -24,5 +54,10 @@
     "qrcode": "^1.5.3",
     "socket.io": "^4.7.5",
     "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nock": "^13.5.6",
+    "supertest": "^7.3.1"
   }
 }

@@ -12,6 +12,7 @@ import {
   Users,
   X,
   CalendarDays,
+  Webhook as WebhookIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -36,6 +37,7 @@ function navLinks(user) {
   if (user) links.push({ to: '/tickets', label: 'My Tickets', icon: Ticket });
   if (user && (user.role === 'Organizer' || user.role === 'Admin')) {
     links.push({ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard });
+    links.push({ to: '/webhooks', label: 'Webhooks', icon: WebhookIcon });
   }
   if (user && (user.role === 'Exhibitor' || user.role === 'Organizer' || user.role === 'Admin')) {
     links.push({ to: '/leads', label: 'Leads', icon: Users });
@@ -122,9 +124,14 @@ export function Navbar({ onOpenCommand }) {
                   <Ticket className="h-4 w-4" /> My Tickets
                 </DropdownMenuItem>
                 {user.role === 'Organizer' || user.role === 'Admin' ? (
-                  <DropdownMenuItem onSelect={() => navigate('/dashboard')}>
-                    <LayoutDashboard className="h-4 w-4" /> Dashboard
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onSelect={() => navigate('/dashboard')}>
+                      <LayoutDashboard className="h-4 w-4" /> Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => navigate('/webhooks')}>
+                      <WebhookIcon className="h-4 w-4" /> Webhooks
+                    </DropdownMenuItem>
+                  </>
                 ) : null}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
