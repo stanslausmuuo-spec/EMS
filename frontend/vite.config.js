@@ -19,19 +19,17 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 700,
+    chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('scheduler')) return 'vendor-react';
-            if (id.includes('framer-motion') || id.includes('motion')) return 'vendor-motion';
-            if (id.includes('@radix-ui') || id.includes('radix')) return 'vendor-radix';
-            if (id.includes('qrcode')) return 'vendor-qrcode';
-            if (id.includes('socket.io')) return 'vendor-socket';
-            if (id.includes('lucide-react')) return 'vendor-lucide';
-            return 'vendor';
-          }
+        // Split only well-isolated, leaf libraries into their own chunks.
+        // A catch-all "vendor" bucket creates circular chunks (e.g. vendor ->
+        // vendor-react -> vendor), which leaves React undefined at runtime and
+        // blanks the app in production. Let Rollup handle everything else.
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-motion': ['framer-motion'],
+          'vendor-socket': ['socket.io-client'],
         },
       },
     },

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ems-pwa-v5';
+const CACHE_NAME = 'ems-pwa-v6';
 const STATIC_ASSETS = ['/favicon.svg', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -24,12 +24,14 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Never intercept API calls, realtime sockets, cross-origin requests, or non-GET
+  // Never intercept API calls, realtime sockets, cross-origin requests, non-GET,
+  // or the service worker script itself (so updates always reach the browser).
   if (
     request.method !== 'GET' ||
     url.origin !== location.origin ||
     url.pathname.startsWith('/api/') ||
-    url.pathname.startsWith('/socket.io')
+    url.pathname.startsWith('/socket.io') ||
+    url.pathname === '/sw.js'
   ) {
     return;
   }
