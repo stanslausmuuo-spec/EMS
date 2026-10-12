@@ -1,4 +1,4 @@
-# EMS Platform
+# Event Management Platform
 
 ![EMS Platform](frontend/public/favicon.svg)
 
